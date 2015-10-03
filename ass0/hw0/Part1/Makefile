@@ -5,7 +5,7 @@
 # convenient.
 ###############################################################################
 CC = g++
-FLAGS = -g
+FLAGS = -g -std=c++11
 SOURCES = *.h *.cpp
 
 EXENAME = obj_reader
