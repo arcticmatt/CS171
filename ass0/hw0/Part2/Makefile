@@ -11,9 +11,9 @@ FLAGS = -g
 # folder--which your program will depend on--is located one directory above the
 # directory that contains this Makefile.
 INCLUDE = -I../
-SOURCES = *.h *.cpp
+SOURCES = *.cpp
 
-EXENAME = my_prog
+EXENAME = matrix_math
 
 all: $(SOURCES)
 	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES)

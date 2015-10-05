@@ -1,2 +1,5 @@
 *.o
 *.tmp
+*.swp
+*.swo
+*.swn
