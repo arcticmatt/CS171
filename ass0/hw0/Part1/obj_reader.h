@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <vector>
+
 using namespace std;
 
 // Vertex struct contains the three points the vertex is defined by
@@ -20,8 +22,18 @@ struct face {
 
 // Objects contain a list of vertices (1-indexed) and faces
 struct object {
-    vector<vertex> vertices;
-    vector<face> faces;
-    object(vector<vertex> vertices, vector<face> faces) : vertices(vertices),
+    vector<vertex *> vertices;
+    vector<face *> faces;
+    object(vector<vertex *> vertices, vector<face *> faces) : vertices(vertices),
         faces(faces) {}
+    ~object() {
+        for (vertex *v : vertices) {
+            if (v != NULL)
+                delete v;
+        }
+        for (face *f : faces) {
+            if (f != NULL)
+                delete f;
+        }
+    }
 };
