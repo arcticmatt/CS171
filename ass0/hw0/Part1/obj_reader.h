@@ -10,7 +10,6 @@ struct vertex {
     float y;
     float z;
     vertex(float x, float y, float z) : x(x), y(y), z(z) {}
-    vertex(vertex& other) : x(other.x), y(other.y), z(other.z) {}
 };
 
 // Face struct contains the numbers of the vertices the face is composed of
@@ -20,35 +19,14 @@ struct face {
     int v2;
     int v3;
     face(int v1, int v2, int v3) : v1(v1), v2(v2), v3(v3) {}
-    face(face& other) : v1(other.v1), v2(other.v2), v3(other.v3) {}
 };
 
 // Objects contain a list of vertices (1-indexed) and faces
 struct object {
     vector<vertex *> vertices;
     vector<face *> faces;
-    string label;
-    object(vector<vertex *> vertices, vector<face *> faces, string label) : vertices(vertices),
-        faces(faces), label(label) {}
-    object(object& other) {
-        vector<vertex *> new_vertices;
-        for (vertex *v : other.vertices) {
-            vertex *v2 = NULL;
-            if (v != NULL) // 0 index is null
-                 v2 = new vertex(*v);
-            new_vertices.push_back(v2);
-        }
-        vertices = new_vertices;
-
-        vector<face *> new_faces;
-        for (face *f : other.faces) {
-            face *f2 = new face(*f);
-            new_faces.push_back(f2);
-        }
-        faces = new_faces;
-
-        label = other.label;
-    }
+    object(vector<vertex *> vertices, vector<face *> faces) : vertices(vertices),
+        faces(faces) {}
     ~object() {
         for (vertex *v : vertices) {
             if (v != NULL)
