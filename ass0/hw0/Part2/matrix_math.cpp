@@ -2,18 +2,11 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include <vector>
-#include <Eigen/Dense>
 #include <cmath>
+#include "matrix_math.h"
 
 using Eigen::MatrixXd;
 using namespace std;
-
-MatrixXd compute_product(vector<MatrixXd> matrices);
-MatrixXd get_matrix(char determ, float x, float y, float z, float angle = 0);
-MatrixXd get_translation_matrix(float x, float y, float z);
-MatrixXd get_scaling_matrix(float x, float y, float z);
-MatrixXd get_rotation_matrix(float x, float y, float z, float angle);
 
 int main(int argc, const char* argv[]) {
     vector<MatrixXd> matrices;
