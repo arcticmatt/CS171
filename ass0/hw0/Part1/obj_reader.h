@@ -37,3 +37,5 @@ struct object {
         }
     }
 };
+
+object *read_object(const char *filename);
