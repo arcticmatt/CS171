@@ -60,6 +60,7 @@ object *read_object(const char *filename) {
         }
     }
 
-    object *o = new object(vertices, faces);
+    string label(filename);
+    object *o = new object(vertices, faces, filename);
     return o;
 }
