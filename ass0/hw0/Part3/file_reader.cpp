@@ -7,25 +7,38 @@
 #include <Eigen/Dense>
 #include "utils.h"
 
+vector<object *> get_objects(const char* input_file);
+void output_transformed_objects(vector<object *> objects);
+
 using Eigen::MatrixXd;
 using namespace std;
 
 int main(int argc, const char* argv[]) {
-    unordered_map<string, object *> labels_map;
-    vector<MatrixXd> matrices;
-    vector<MatrixXd> matrix_prods;
-    vector<object *> object_copies;
-
     // Should only be one argument, the input file
     assert (argc == 2);
+    // Print the transformed objects!
+    vector<object *> objects = get_objects(argv[1]);
+    output_transformed_objects(objects);
+}
 
-    ifstream infile(argv[1]);
+/*
+ * Given an input file of the format specified in Part 3, reads through it and returns
+ * a vector of pointers to object structs. Each object struct has a vector of
+ * pointers to vertices, a vector of pointers to faces, and a vector of transformation
+ * matrices. Each object struct also has a label.
+ */
+vector<object *> get_objects(const char* input_file) {
+    unordered_map<string, object *> labels_map;
+    vector<object *> object_copies;
+
+    ifstream infile(input_file);
     string line;
     string label, filename;
     char determ;
     float x, y, z;
     float angle = 0;
     object *curr_object;
+    object *object_copy;
 
     /*
      * Read file by trying to read each type of line, and resetting if it doesn't
@@ -38,7 +51,8 @@ int main(int argc, const char* argv[]) {
             if (determ == 'r')
                 (iss >> angle);
             MatrixXd matrix = get_matrix(determ, x, y, z, angle);
-            matrices.push_back(matrix);
+            // Add transformation matrix to current object copy
+            object_copy->transformations.push_back(matrix);
             continue;
         }
 
@@ -58,28 +72,27 @@ int main(int argc, const char* argv[]) {
         iss.clear();
         /* This reads labels for the second part of the file. */
         if (iss >> label) {
-            // Check to see if we should do any computation for the previous transformations
-            if (matrices.size() > 0) {
-                MatrixXd product = compute_product(matrices);
-                matrix_prods.push_back(product);
-            }
             // Get current object from map we populated when reading first part of file
             curr_object = labels_map[label];
-            object *object_copy = new object(*curr_object);
+            object_copy = new object(*curr_object);
             object_copies.push_back(object_copy);
-            // New label, so we have new transformation matrices
-            matrices.clear();
         }
     }
-    MatrixXd product = compute_product(matrices);
-    matrix_prods.push_back(product);
 
+    return object_copies;
+}
+
+/*
+ * Given a vector of pointers to objects (as returned by the above method), outputs
+ * the labels for the objects, followed by their transformed vertices.
+ */
+void output_transformed_objects(vector<object *> objects) {
     // We should now have vectors of object copies and matrix products.
     // So now we just need to go through, apply the matrix products to the
     // object vertices, and then print.
-    for (int i = 0; i < object_copies.size(); i++) {
-        object *o = object_copies[i];
-        MatrixXd m = matrix_prods[i];
+    for (int i = 0; i < objects.size(); i++) {
+        object *o = objects[i];
+        MatrixXd m = compute_product(o->transformations);
         cout << o->label << " copy" << endl;
         for (vertex *v : o->vertices) {
             if (v == NULL)

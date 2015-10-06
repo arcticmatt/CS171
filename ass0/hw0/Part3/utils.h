@@ -31,9 +31,10 @@ struct face {
 struct object {
     vector<vertex *> vertices;
     vector<face *> faces;
+    vector<MatrixXd> transformations;
     string label;
-    object(vector<vertex *> vertices, vector<face *> faces, string label) : vertices(vertices),
-        faces(faces), label(label) {}
+    object(vector<vertex *> vertices, vector<face *> faces) : vertices(vertices),
+        faces(faces) {}
     object(object& other) {
         vector<vertex *> new_vertices;
         for (vertex *v : other.vertices) {

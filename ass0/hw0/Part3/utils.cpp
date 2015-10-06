@@ -26,8 +26,7 @@ object *read_object(const char *filename) {
         }
     }
 
-    string label(filename);
-    object *o = new object(vertices, faces, filename);
+    object *o = new object(vertices, faces);
     return o;
 }
 
