@@ -31,7 +31,7 @@ object *read_object(const char *filename) {
 }
 
 /*
- * Compute the product of a vector of matrixes. Given that the vector contains
+ * Computes the product of a vector of matrixes. Given that the vector contains
  * matrices A, B, and C, in that order, we will compute the product CBA.
  */
 MatrixXd compute_product(vector<MatrixXd> matrices) {
