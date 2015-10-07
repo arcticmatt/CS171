@@ -1,8 +1,0 @@
-- add in error checking for invalid inputs
-
-
-questions:
-- do we need to deal with invalid input?
-- reusing code for Part 3
-- line length?
-- multiply by inverse?
