@@ -1,0 +1,19 @@
+================================================================================
+This README contains instructions on how to compile and execute my programs.
+================================================================================
+
+In each PartX folder, there is a Makefile. For Parts 1, 2, and 4, all you have
+to do is run "make" and then run the generated executable with the correct
+arguments. For Part 3, "make" needs to have been run in Parts 1 and 2 in order
+to generate the necessary .o files.
+
+For Part1, the executable takes an arbitrary number of .obj files.
+For Part2, the executable takes a single text file containing a list of
+translation, rotation, and scaling vectors.
+For Part3, the executable takes a single text file with our specified object
+and translation file format.
+For Part4, the executable takes 2 numbers, xres and yres.
+
+Note: All the executables are named main. All these contain are the main method.
+Most of the logic is in the other cpp files. For the parts, these are
+obj_reader, matrix_math, file_reader, and ppm_gen, respectively.

@@ -5,21 +5,11 @@
 #include <string>
 #include <cassert>
 #include <Eigen/Dense>
-#include "utils.h"
-
-vector<object *> get_objects(const char* input_file);
-void output_transformed_objects(vector<object *> objects);
+#include "file_reader.h"
+#include "Part2/matrix_math.h"
 
 using Eigen::MatrixXd;
 using namespace std;
-
-int main(int argc, const char* argv[]) {
-    // Should only be one argument, the input file
-    assert (argc == 2);
-    // Print the transformed objects!
-    vector<object *> objects = get_objects(argv[1]);
-    output_transformed_objects(objects);
-}
 
 /*
  * Given an input file of the format specified in Part 3, reads through it and
@@ -85,7 +75,8 @@ vector<object *> get_objects(const char* input_file) {
 
 /*
  * Given a vector of pointers to objects (as returned by the above method),
- * outputs the labels for the objects, followed by their transformed vertices.
+ * transform the vertices of the objects using the transformation matrices of
+ * the objects and output the results.
  */
 void output_transformed_objects(vector<object *> objects) {
     // We should now have vectors of object copies and matrix products.
@@ -93,7 +84,8 @@ void output_transformed_objects(vector<object *> objects) {
     // object vertices, and then print.
     for (int i = 0; i < objects.size(); i++) {
         object *o = objects[i];
-        MatrixXd m = compute_product(o->transformations);
+        MatrixXd m2 = compute_product(o->transformations);
+        MatrixXd m = m2.inverse();
         cout << o->label << " copy" << endl;
         for (vertex *v : o->vertices) {
             if (v == NULL)

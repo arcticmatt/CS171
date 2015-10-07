@@ -3,15 +3,18 @@
 ###############################################################################
 CC = g++
 FLAGS = -g -std=c++11
-SOURCES = *.h *.cpp
+INCLUDE = -I../
+SOURCES = *.h main.cpp obj_reader.o
 
-EXENAME = obj_reader
+EXENAME = main
 
 all: $(SOURCES)
-	$(CC) $(FLAGS) -o $(EXENAME) $(SOURCES)
+	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES)
+
+obj_reader.o: obj_reader.cpp obj_reader.h
+	$(CC) $(FLAGS) -c $(INCLUDE) obj_reader.cpp
 
 clean:
 	rm -f *.o $(EXENAME)
 
 .PHONY: all clean
-

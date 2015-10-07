@@ -3,17 +3,16 @@
 ###############################################################################
 CC = g++
 FLAGS = -g -std=c++11
-
-# The following line is a relative directory reference that assumes the Eigen
-# folder--which your program will depend on--is located one directory above the
-# directory that contains this Makefile.
 INCLUDE = -I../
-SOURCES = *.h *.cpp
+SOURCES = *.h main.cpp file_reader.o
 
-EXENAME = file_reader
+EXENAME = main
 
 all: $(SOURCES)
-	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES)
+	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES) ../Part1/obj_reader.o ../Part2/matrix_math.o
+
+file_reader.o: file_reader.cpp file_reader.h
+	$(CC) $(FLAGS) -c $(INCLUDE) file_reader.cpp
 
 clean:
 	rm -f *.o $(EXENAME)

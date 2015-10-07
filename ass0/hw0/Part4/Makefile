@@ -3,12 +3,15 @@
 ###############################################################################
 CC = g++
 FLAGS = -g -std=c++11
-SOURCES = *.h *.cpp
+SOURCES = *.h main.cpp ppm_gen.o
 
-EXENAME = ppm_gen
+EXENAME = main
 
 all: $(SOURCES)
-	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES)
+	$(CC) $(FLAGS) -o $(EXENAME) $(SOURCES)
+
+ppm_gen.o: ppm_gen.cpp ppm_gen.h
+	$(CC) $(FLAGS) -c ppm_gen.cpp
 
 clean:
 	rm -f *.o $(EXENAME)

@@ -3,20 +3,18 @@
 ###############################################################################
 CC = g++
 FLAGS = -g
-
-# The following line is a relative directory reference that assumes the Eigen
-# folder--which your program will depend on--is located one directory above the
-# directory that contains this Makefile.
 INCLUDE = -I../
-SOURCES = *.h *.cpp
+SOURCES = *.h main.cpp matrix_math.o
 
-EXENAME = matrix_math
+EXENAME = main
 
 all: $(SOURCES)
 	$(CC) $(FLAGS) -o $(EXENAME) $(INCLUDE) $(SOURCES)
+
+matrix_math.o: matrix_math.cpp matrix_math.h
+	$(CC) $(FLAGS) -c $(INCLUDE) matrix_math.cpp
 
 clean:
 	rm -f *.o $(EXENAME)
 
 .PHONY: all clean
-
