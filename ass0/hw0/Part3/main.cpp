@@ -9,4 +9,8 @@ int main(int argc, const char* argv[]) {
     // Print the transformed objects!
     vector<object *> objects = get_objects(argv[1]);
     output_transformed_objects(objects);
+
+    // Free memory
+    for (object *o : objects)
+        delete o;
 }

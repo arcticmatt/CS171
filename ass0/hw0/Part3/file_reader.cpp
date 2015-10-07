@@ -70,6 +70,13 @@ vector<object *> get_objects(const char* input_file) {
         }
     }
 
+    // Free memory
+    for (unordered_map<string, object *>::iterator iter = labels_map.begin();
+            iter != labels_map.end(); ++iter) {
+        object *o = iter->second;
+        delete o;
+    }
+
     return object_copies;
 }
 
