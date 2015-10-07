@@ -22,10 +22,10 @@ int main(int argc, const char* argv[]) {
 }
 
 /*
- * Given an input file of the format specified in Part 3, reads through it and returns
- * a vector of pointers to object structs. Each object struct has a vector of
- * pointers to vertices, a vector of pointers to faces, and a vector of transformation
- * matrices. Each object struct also has a label.
+ * Given an input file of the format specified in Part 3, reads through it and
+ * returns a vector of pointers to object structs. Each object struct has a
+ * vector of pointers to vertices, a vector of pointers to faces, and a vector
+ * of transformation matrices. Each object struct also has a label.
  */
 vector<object *> get_objects(const char* input_file) {
     unordered_map<string, object *> labels_map;
@@ -72,7 +72,8 @@ vector<object *> get_objects(const char* input_file) {
         iss.clear();
         /* This reads labels for the second part of the file. */
         if (iss >> label) {
-            // Get current object from map we populated when reading first part of file
+            // Get current object from map we populated when reading first part
+            // of file
             curr_object = labels_map[label];
             object_copy = new object(*curr_object);
             object_copies.push_back(object_copy);
@@ -83,8 +84,8 @@ vector<object *> get_objects(const char* input_file) {
 }
 
 /*
- * Given a vector of pointers to objects (as returned by the above method), outputs
- * the labels for the objects, followed by their transformed vertices.
+ * Given a vector of pointers to objects (as returned by the above method),
+ * outputs the labels for the objects, followed by their transformed vertices.
  */
 void output_transformed_objects(vector<object *> objects) {
     // We should now have vectors of object copies and matrix products.
@@ -99,12 +100,14 @@ void output_transformed_objects(vector<object *> objects) {
                 continue;
             MatrixXd vec(4,1);
             vec << v->x, v->y, v->z, 1;
-            //cout << vec(0,0) << " " << vec(1,0) << " " << vec(2,0) << " " <<
-                //vec(3,0) << endl;
             MatrixXd t_vec = m * vec;
-            cout << t_vec(0,0) << " " << t_vec(1,0) << " " << t_vec(2,0) << " " <<
-                t_vec(3,0) << endl;
-            cout << "\n";
+            // Adjust the vector back to 3 dimensions, and change the vertex
+            float w = t_vec(3, 0);
+            v->x = t_vec(0,0) / w;
+            v->y = t_vec(1,0) / w;
+            v->z = t_vec(2,0) / w;
+            cout << v->x << " " << v->y << " " << v->z << endl;
         }
+        cout << "\n";
     }
 }
