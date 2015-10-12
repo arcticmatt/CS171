@@ -80,7 +80,8 @@ struct object {
     }
 };
 
-void output_transformed_objects(vector<object *> objects, bool transform);
+void output_object_vertices(vector<object *> objects);
+void output_object_vertices(object *o);
 
 struct scene {
     vertex position;
@@ -110,7 +111,7 @@ struct scene {
         cout << "right " << right << endl;
         cout << "top " << top << endl;
         cout << "bottom " << bottom << endl;
-        output_transformed_objects(objects, false);
+        output_object_vertices(objects);
     }
 };
 

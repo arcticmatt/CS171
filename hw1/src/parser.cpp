@@ -138,40 +138,22 @@ vector<object *> parse_objects(ifstream &infile) {
     return object_copies;
 }
 
+
 /*
- * Given a vector of pointers to objects (as returned by the above method),
- * transform the vertices of the objects using the transformation matrices of
- * the objects and output the results.
- *
- * If transform == false, just output the objects as they are.
+ * For every object in a vector of objects, prints out its vertices.
  */
-void output_transformed_objects(vector<object *> objects, bool transform) {
-    // We should now have vectors of object copies and matrix products.
-    // So now we just need to go through, apply the matrix products to the
-    // object vertices, and then print.
-    for (int i = 0; i < objects.size(); i++) {
-        object *o = objects[i];
-        MatrixXd m2 = compute_product(o->transformations);
-        MatrixXd m = m2.inverse();
-        cout << o->label << " copy" << endl;
-        for (vertex *v : o->vertices) {
-            if (v == NULL)
-                continue;
-            MatrixXd vec(4,1);
-            vec << v->x, v->y, v->z, 1;
-            MatrixXd t_vec = m * vec;
-            // Adjust the vector back to 3 dimensions, and change the vertex
-            float w = t_vec(3, 0);
-            if (transform) {
-                v->x = t_vec(0,0) / w;
-                v->y = t_vec(1,0) / w;
-                v->z = t_vec(2,0) / w;
-                cout << v->x << " " << v->y << " " << v->z << endl;
-            } else {
-                cout << v->x << " " << v->y << " " << v->z << endl;
-            }
-        }
-        cout << "\n";
+void output_object_vertices(vector<object *> objects) {
+    for (object *o : objects)
+        output_object_vertices(o);
+}
+
+/*
+ * Prints out all the vertices of an object.
+ */
+void output_object_vertices(object *o) {
+    for (vertex *v : o->vertices) {
+        if (v != NULL)
+            cout << "v " << v->x << " " << v->y << " " << v->z << endl;
     }
 }
 
