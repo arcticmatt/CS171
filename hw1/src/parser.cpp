@@ -28,7 +28,6 @@ scene *parse_scene(ifstream &infile) {
      * Then call the method parse_objects to get the vector of objects.
      */
     while (getline(infile, line)) {
-        cout << line << endl;
         if (line.compare("objects:") == 0) {
             s->objects = parse_objects(infile);
             break;
@@ -138,25 +137,6 @@ vector<object *> parse_objects(ifstream &infile) {
     return object_copies;
 }
 
-
-/*
- * For every object in a vector of objects, prints out its vertices.
- */
-void output_object_vertices(vector<object *> objects) {
-    for (object *o : objects)
-        output_object_vertices(o);
-}
-
-/*
- * Prints out all the vertices of an object.
- */
-void output_object_vertices(object *o) {
-    for (vertex *v : o->vertices) {
-        if (v != NULL)
-            cout << "v " << v->x << " " << v->y << " " << v->z << endl;
-    }
-}
-
 /*
  * Creats an object from a file, and returns a pointer to it.
  */
@@ -251,6 +231,11 @@ MatrixXd get_scaling_matrix(float x, float y, float z) {
  */
 MatrixXd get_rotation_matrix(float x, float y, float z, float angle) {
     MatrixXd m(4,4);
+    float magnitude = sqrt(x * x + y * y + z * z);
+    x /= magnitude;
+    y /= magnitude;
+    z /= magnitude;
+
     m << (x * x) + (1 - (x * x)) * cos(angle), (x * y) * (1 - cos(angle)) - z * sin(angle),
               (x * z) * (1 - cos(angle)) + y * sin(angle), 0,
       (y * x) * (1 - cos(angle)) + z * sin(angle), (y * y) + (1 - y * y) * cos(angle),
