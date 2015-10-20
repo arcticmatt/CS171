@@ -1,4 +1,6 @@
 General outline:
+make light struct
+
 parse camera info and lights into scene
     - for lights, make vector of light structs
 
@@ -8,6 +10,9 @@ add ambient, diffuse, and specular color struct to object struct
 also add shininess value
 
 add surface_normal struct
+add vector of surface normals to object
+
+normal indices start at 1!
 
 
 Part 1: Parse everything.
@@ -27,7 +32,8 @@ Part 5: Implement the algorithm for rasterizing colored triangles with
         buffering. Remember the depth buffer (global variable?).
 
 Part 6: Implement the Gouraud shading algorithm using the lighting and triangle
-        rasterization algorithms. If the mode is 0, this algorithm should be called.
+        rasterization algorithms. If the mode is 0, this algorithm should be
+        called.
 
 Part 7: Implement the full Phong shading algorithm. If the mode is 1, this
         algorithm should be called.

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
+#include <Eigen/Dense>
 
 using Eigen::MatrixXd;
 using namespace std;

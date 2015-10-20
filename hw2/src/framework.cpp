@@ -2,6 +2,25 @@
 #include <iostream>
 
 /*
+ * For every object in a vector of objects, prints out its surface normals.
+ */
+void output_object_normals(vector<object *> objects) {
+    for (object *o : objects)
+        output_object_normals(o);
+}
+
+/*
+ * Prints out all the surface normals of an object.
+ */
+void output_object_normals(object *o) {
+    for (surface_normal *n : o->normals) {
+        if (n != NULL) {
+            cout << "vn " << n->x << " " << n->y << " " << n->z << endl;
+        }
+    }
+}
+
+/*
  * For every object in a vector of objects, prints out its vertices.
  */
 void output_object_vertices(vector<object *> objects) {
