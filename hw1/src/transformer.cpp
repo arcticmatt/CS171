@@ -102,6 +102,8 @@ void transform_object_ndc(object *o, scene *s) {
  * we always rotate it by a specified angle about a specified axis and then
  * translate it to a specified point. In other words, we apply the translation
  * matrix C = T_cR_c.
+ *
+ * Note that position and orient are the position and orientation of the camera.
  */
 MatrixXd get_camera_transform_matrix(vertex position, orientation orient) {
     MatrixXd transl_mat = get_translation_matrix(position.x, position.y,

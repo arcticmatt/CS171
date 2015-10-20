@@ -1,0 +1,14 @@
+================================================================================
+This README contains instructions on how to compile and execute my programs.
+================================================================================
+
+To compile and run my hw1, just navigate into the hw1/src directory and run make.
+Then just run the wireframe executable
+(e.g. ./wireframe ../data/scene_cube1.txt 800 800 | display -)
+
+Part 1 is in parser.cpp
+Parts 2-4 are in transformer.cpp
+Parts 5-6 are in rasterizer.cpp and wireframe.cpp
+
+An explanaation for the generalization of Bresenham's is in the comments
+of rasterizer.cpp.

@@ -231,6 +231,7 @@ MatrixXd get_scaling_matrix(float x, float y, float z) {
  */
 MatrixXd get_rotation_matrix(float x, float y, float z, float angle) {
     MatrixXd m(4,4);
+    // Make input vector a unit vector
     float magnitude = sqrt(x * x + y * y + z * z);
     x /= magnitude;
     y /= magnitude;

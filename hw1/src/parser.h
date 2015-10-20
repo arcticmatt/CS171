@@ -13,7 +13,7 @@ using Eigen::MatrixXd;
 using namespace std;
 
 /*******************************************************************************
- * Defines all methods needed for parsing files
+ * Defines methods needed for parsing files
  ******************************************************************************/
 
 scene *parse_scene(ifstream &infile);

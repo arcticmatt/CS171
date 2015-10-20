@@ -17,27 +17,12 @@ int main(int argc, const char* argv[]) {
     int yres = atoi(argv[3]);
     scene *s = parse_scene(infile);
 
-    //cout << "Printing the contents of the parsed scene object" << endl;
-    //s->print();
 
-    //cout << "Printing world transform matrix" << endl;
-    MatrixXd world_transf_mat = get_world_transform_matrix(s->position, s->orient);
-    //cout << world_transf_mat << endl;
-
-    //cout << "Printing perspective projection matrix" << endl;
-    MatrixXd persp_proj_mat = get_perspective_projection_matrix(s);
-    //cout << persp_proj_mat << endl;
-    //s->print();
-
-    //cout << "Applying all transformations to scene's objects (geom, camera, NDC)" << endl;
+    // Applying all transformations to scene's objects
     apply_all_transformations(s);
-    //s->print();
-
-    //cout << "Initializing screen coordinate members of vertices for all objects" << endl;
+    // Initializing screen coordinate members of vertices for all objects
     map_to_screen_coords(s, xres, yres);
-    //s->print();
 
-    //s->print();
     vector<char> grid(yres * xres);
     // Fill grid
     draw_objects(s, grid, xres, yres);

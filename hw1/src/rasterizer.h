@@ -20,6 +20,10 @@ struct ppm {
     ppm(int x, int y) : xres(x), yres(y) {}
 };
 
+/*******************************************************************************
+ * Defines methods needed for drawing stuff
+ ******************************************************************************/
+
 ppm create_ppm(int xres, int yres, vector<char> grid);
 string get_object_line();
 string get_bg_line();

@@ -8,14 +8,13 @@ using Eigen::MatrixXd;
 using namespace std;
 
 /*******************************************************************************
- * Defines all methods needing for transforming/mapping vertices
+ * Defines methods needed for transforming/mapping vertices
  ******************************************************************************/
 
-/* Part 5 */
 /* Part 4 */
 void map_to_screen_coords(scene *s, int xres, int yres);
 void map_to_screen_coords(object *o, int xres, int yres);
-/* Parts 1-3 */
+/* Parts 2-3 */
 void apply_all_transformations(scene *s);
 void apply_all_transformations(object *o, scene *s);
 void transform_object(object *o, MatrixXd mat);

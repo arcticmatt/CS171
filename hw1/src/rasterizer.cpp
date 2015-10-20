@@ -55,10 +55,11 @@ void draw_object(object *o, vector<char>& grid, int xres, int yres) {
  * Note that depending on the sign of (x1 - x0) and (y1 - y0), we'll either be
  * adding or subtracting values in different places. This is just to account for
  * moving with or against the slope.
+ *
+ * So basically, for large slopes, we do a "swap" of x and y, and for negative
+ * slopes, we modify the sign of certain values.
  */
 void bresenham(int x0, int y0, int x1, int y1, vector<char>& grid, int xres, int yres) {
-    //cout << "Drawing line btwn (" << x0 << "," << y0 << ") and (" << x1 << "," << y1 <<
-        //")" << endl;
     float error = 0;
     int change_val_y = (y0 < y1) ? 1 : -1;
     int change_val_x = (x0 < x1) ? 1 : -1;
