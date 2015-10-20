@@ -37,14 +37,22 @@ struct surface_normal {
 };
 
 // Face struct contains the numbers of the vertices the face is composed of
-// (1-indexed)
+// (1-indexed), as well as the numbers of the surfaces normals for those
+// vertices. So, for example vertex #v1 has the vn1-th surface normal.
+// In other words, these numbers index into the vectors that are stored
+// in the object struct.
 struct face {
     int v1;
     int v2;
     int v3;
+    int vn1;
+    int vn2;
+    int vn3;
     face() {}
-    face(int v1, int v2, int v3) : v1(v1), v2(v2), v3(v3) {}
-    face(face& other) : v1(other.v1), v2(other.v2), v3(other.v3) {}
+    face(int v1, int v2, int v3, int vn1, int vn2, int vn3) :
+            v1(v1), v2(v2), v3(v3), vn1(vn1), vn2(vn2), vn3(vn3) {}
+    face(face& other) : v1(other.v1), v2(other.v2), v3(other.v3),
+            vn1(other.vn1), vn2(other.vn2), vn3(other.vn3) {}
 };
 
 // An orientation is just a position as well as an angle
@@ -85,7 +93,8 @@ struct light {
             attenuation(other.attenuation) {}
 };
 
-// Objects contain a list of vertices (1-indexed) and faces
+// Objects contain a list of vertices (1-indexed),
+// list of surface normals (also 1-indexed), and faces
 struct object {
     vector<vertex *> vertices;
     vector<surface_normal *> normals;
@@ -101,10 +110,31 @@ struct object {
             vector<face *> faces) : vertices(vertices), normals(normals),
             faces(faces) {}
     object(object& other) {
-        // TODO: this might not work (copying vectors of pointers using assignment)
-        vertices = other.vertices;
-        normals = other.normals;
-        faces = other.faces;
+        vector<vertex *> new_vertices;
+        for (vertex *v : other.vertices) {
+            vertex *v2 = NULL;
+            if (v != NULL) // 0 index is null
+                 v2 = new vertex(*v);
+            new_vertices.push_back(v2);
+        }
+        vertices = new_vertices;
+
+        vector<surface_normal *> new_normals;
+        for (surface_normal *n : other.normals) {
+            surface_normal *n2 = NULL;
+            if (n != NULL) // 0 index is null
+                 n2 = new surface_normal(*n);
+            new_normals.push_back(n2);
+        }
+        normals = new_normals;
+
+        vector<face *> new_faces;
+        for (face *f : other.faces) {
+            face *f2 = new face(*f);
+            new_faces.push_back(f2);
+        }
+        faces = new_faces;
+
         transformations = other.transformations;
         ambient = other.ambient;
         diffuse = other.diffuse;
@@ -128,6 +158,8 @@ struct object {
     }
 };
 
+void output_lights(vector<light *> lights);
+void output_light(light *l);
 void output_object_normals(vector<object *> objects);
 void output_object_normals(object *o);
 void output_object_vertices(vector<object *> objects);
@@ -135,6 +167,7 @@ void output_object_vertices(object *o);
 void output_object_faces(vector<object *> objects);
 void output_object_faces(object *o);
 
+/* Contains camera position, list of objects, list of lights */
 struct scene {
     vertex position;
     orientation orient;
@@ -168,7 +201,9 @@ struct scene {
         cout << "right " << right << endl;
         cout << "top " << top << endl;
         cout << "bottom " << bottom << endl;
+        output_lights(lights);
         output_object_vertices(objects);
+        output_object_normals(objects);
         output_object_faces(objects);
     }
 };

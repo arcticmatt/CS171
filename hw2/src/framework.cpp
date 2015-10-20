@@ -2,6 +2,25 @@
 #include <iostream>
 
 /*
+ * Go through vector of lights and print the contents.
+ */
+void output_lights(vector<light *> lights) {
+    for (light *l : lights)
+        output_light(l);
+}
+
+/*
+ * Print out a single light.
+ */
+void output_light(light *l) {
+    vertex p = l->position;
+    color c = l->colr;
+    cout << "light " << p.x << " " << p.y << " " << p.z << " , " <<
+        c.r << " " << c.g << " " << c.b << " , " <<
+        l->attenuation << endl;
+}
+
+/*
  * For every object in a vector of objects, prints out its surface normals.
  */
 void output_object_normals(vector<object *> objects) {
@@ -54,7 +73,9 @@ void output_object_faces(vector<object *> objects) {
 void output_object_faces(object *o) {
     for (face *f : o->faces) {
         if (f != NULL) {
-            cout << "f " << f->v1 << " " << f->v2 << " " << f->v3 << endl;
+            cout << "f " << f->v1 << "//" << f->vn1 << " "
+                << f->v2 << "//" << f->vn2 << " "
+                << f->v3 << "//" << f->vn3 << endl;
         }
     }
 }

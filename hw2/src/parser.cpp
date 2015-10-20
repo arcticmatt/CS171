@@ -21,13 +21,15 @@ scene *parse_scene(ifstream &infile) {
     scene *s = new scene();
     string line;
     string determ;
-    float x, y, z, angle, perspective_param;
+    float x, y, z, r, g, b, angle, perspective_param, atten;
+    char garbage;
 
     /*
      * Read file line by line until we get to the line that says "objects:".
      * Then call the method parse_objects to get the vector of objects.
      */
     while (getline(infile, line)) {
+        cout << line << endl;
         if (line.compare("objects:") == 0) {
             s->objects = parse_objects(infile);
             break;
@@ -62,7 +64,13 @@ scene *parse_scene(ifstream &infile) {
             } else if (determ.compare("bottom") == 0) {
                 (iss >> perspective_param);
                 s->bottom = perspective_param;
+            } else if (determ.compare("light") == 0) {
+                cout << "PUSHING BACK LIGHT" << endl;
+                (iss >> x >> y >> z >> garbage >> r >> g >> b >> garbage >> atten);
+                light *l = new light(x, y, z, r, g, b, atten);
+                s->lights.push_back(l);
             }
+            determ = "";
         }
     }
 
@@ -82,7 +90,9 @@ vector<object *> parse_objects(ifstream &infile) {
     string line;
     string label, filename;
     char determ;
-    float x, y, z;
+    string shading_determ;
+    float x, y, z, r, g, b;
+    float shine;
     float angle = 0;
     object *curr_object;
     object *object_copy;
@@ -101,6 +111,27 @@ vector<object *> parse_objects(ifstream &infile) {
             // Add transformation matrix to current object copy
             object_copy->transformations.push_back(matrix);
             continue;
+        }
+
+        iss.str(line);
+        iss.clear();
+        /* This reads shading fields for the second part of the file. */
+        (iss >> shading_determ);
+        if (shading_determ.compare("ambient") == 0) {
+            (iss >> r >> g >> b);
+            color amb(r, g, b);
+            object_copy->ambient = amb;
+        } else if (shading_determ.compare("diffuse") == 0) {
+            (iss >> r >> g >> b);
+            color diff(r, g, b);
+            object_copy->diffuse = diff;
+        } else if (shading_determ.compare("specular") == 0) {
+            (iss >> r >> g >> b);
+            color spec(r, g, b);
+            object_copy->specular = spec;
+        } else if (shading_determ.compare("shininess") == 0) {
+            (iss >> shine);
+            object_copy->shininess = shine;
         }
 
         iss.str(line);
@@ -144,26 +175,45 @@ object *parse_object(const char *filename) {
     string rel_filename = DATA_DIR;
     rel_filename.append(filename);
     ifstream infile(rel_filename);
-    char determ;
+    string line;
+    string determ;
     float x, y, z;
+    string mult_x, mult_y, mult_z;
     vector<vertex *> vertices;
+    vector<surface_normal *> normals;
     vector<face *> faces;
     // Vertices are 1-indexed, so push null for 0th element
     vertices.push_back(NULL);
+    // Normals are 1-indexed too, so push null for 0th element
+    normals.push_back(NULL);
 
     // Go through file and read vertices and faces, create structs
-    while (infile >> determ >> x >> y >> z) {
+    while (getline(infile, line)) {
+        istringstream iss(line);
+        (iss >> determ);
         // Create new vertex
-        if (determ == 'v') {
+        if (determ.compare("v") == 0) {
+            (iss >> x >> y >> z);
             vertex *v = new vertex(x, y, z);
             vertices.push_back(v);
+        } else if (determ.compare("vn") == 0) {
+            (iss >> x >> y >> z);
+            surface_normal *n = new surface_normal(x, y, z);
+            normals.push_back(n);
         } else {
-            face *f = new face((int) x, (int) y, (int) z);
+            (iss >> mult_x >> mult_y >> mult_z);
+            int v1 = mult_x.at(0) - '0';
+            int vn1 = mult_x.at(mult_x.size() - 1) - '0';
+            int v2 = mult_y.at(0) - '0';
+            int vn2 = mult_y.at(mult_y.size() - 1) - '0';
+            int v3 = mult_z.at(0) - '0';
+            int vn3 = mult_z.at(mult_z.size() - 1) - '0';
+            face *f = new face(v1, v2, v3, vn1, vn2, vn3);
             faces.push_back(f);
         }
     }
 
-    object *o = new object(vertices, faces);
+    object *o = new object(vertices, normals, faces);
     return o;
 }
 

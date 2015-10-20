@@ -35,25 +35,23 @@ struct object {
     object(vector<vertex *> vertices, vector<face *> faces) : vertices(vertices),
         faces(faces) {}
     object(object& other) {
-        //vector<vertex *> new_vertices;
-        //for (vertex *v : other.vertices) {
-            //vertex *v2 = NULL;
-            //if (v != NULL) // 0 index is null
-                 //v2 = new vertex(*v);
-            //new_vertices.push_back(v2);
-        //}
-        //vertices = new_vertices;
+        vector<vertex *> new_vertices;
+        for (vertex *v : other.vertices) {
+            vertex *v2 = NULL;
+            if (v != NULL) // 0 index is null
+                 v2 = new vertex(*v);
+            new_vertices.push_back(v2);
+        }
+        vertices = new_vertices;
 
-        //vector<face *> new_faces;
-        //for (face *f : other.faces) {
-            //face *f2 = new face(*f);
-            //new_faces.push_back(f2);
-        //}
-        //faces = new_faces;
-        vertices = other.vertices;
-        faces = other.faces;
+        vector<face *> new_faces;
+        for (face *f : other.faces) {
+            face *f2 = new face(*f);
+            new_faces.push_back(f2);
+        }
+        faces = new_faces;
+
         transformations = other.transformations;
-
         label = other.label;
     }
     ~object() {

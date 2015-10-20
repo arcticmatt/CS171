@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cassert>
 #include <fstream>
-#include <Eigen/Dense>
+#include "parser.h"
 
 using Eigen::MatrixXd;
 using namespace std;
@@ -16,6 +16,9 @@ int main(int argc, const char* argv[]) {
     int yres = atoi(argv[3]);
     int mode = atoi(argv[4]);
 
-    cout << "xres = " << xres << ", yres = " << yres << ", mode = " << mode << endl;
-}
+    cout << "SHADER: xres = " << xres << ", yres = " << yres << ", mode = " <<
+        mode << endl;
 
+    scene *s = parse_scene(infile);
+    s->print();
+}
