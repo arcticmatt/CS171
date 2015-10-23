@@ -120,18 +120,18 @@ vector<object *> parse_objects(ifstream &infile) {
         if (shading_determ.compare("ambient") == 0) {
             (iss >> r >> g >> b);
             color amb(r, g, b);
-            object_copy->ambient = amb;
+            object_copy->material.ambient = amb;
         } else if (shading_determ.compare("diffuse") == 0) {
             (iss >> r >> g >> b);
             color diff(r, g, b);
-            object_copy->diffuse = diff;
+            object_copy->material.diffuse = diff;
         } else if (shading_determ.compare("specular") == 0) {
             (iss >> r >> g >> b);
             color spec(r, g, b);
-            object_copy->specular = spec;
+            object_copy->material.specular = spec;
         } else if (shading_determ.compare("shininess") == 0) {
             (iss >> shine);
-            object_copy->shininess = shine;
+            object_copy->material.shininess = shine;
         }
 
         iss.str(line);

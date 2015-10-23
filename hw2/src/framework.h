@@ -8,11 +8,33 @@
 #include <Eigen/Dense>
 
 using Eigen::MatrixXd;
+using Eigen::Vector3f;
 using namespace std;
 
 /*******************************************************************************
  * Defines all the structs
  ******************************************************************************/
+
+// Color struct simply wraps RGB values
+struct color {
+    float r;
+    float g;
+    float b;
+    color() {}
+    color(float r, float g, float b) : r(r), g(g), b(b) {}
+    Vector3f get_vec() {
+        Vector3f vec(r, g, b);
+        return vec;
+    }
+};
+
+// Defines the material of a surface
+struct surface_material {
+    color ambient;
+    color diffuse;
+    color specular;
+    float shininess;
+};
 
 // Vertex struct contains the three points the vertex is defined by
 struct vertex {
@@ -24,6 +46,10 @@ struct vertex {
     vertex() {}
     vertex(float x, float y, float z) : x(x), y(y), z(z) {}
     vertex(vertex& other) : x(other.x), y(other.y), z(other.z) {}
+    Vector3f get_vec() {
+        Vector3f vec(x, y, z);
+        return vec;
+    }
 };
 
 // Surface Normal struct contains the three points components of a surface normal.
@@ -34,6 +60,10 @@ struct surface_normal {
     surface_normal() {}
     surface_normal(float x, float y, float z) : x(x), y(y), z(z) {}
     surface_normal(surface_normal& other) : x(other.x), y(other.y), z(other.z) {}
+    Vector3f get_vec() {
+        Vector3f vec(x, y, z);
+        return vec;
+    }
 };
 
 // Face struct contains the numbers of the vertices the face is composed of
@@ -48,6 +78,9 @@ struct face {
     int vn1;
     int vn2;
     int vn3;
+    color c1;
+    color c2;
+    color c3;
     face() {}
     face(int v1, int v2, int v3, int vn1, int vn2, int vn3) :
             v1(v1), v2(v2), v3(v3), vn1(vn1), vn2(vn2), vn3(vn3) {}
@@ -66,15 +99,6 @@ struct orientation {
             angle(angle) {}
     orientation(orientation& other) : x(other.x), y(other.y), z(other.z),
             angle(other.angle) {}
-};
-
-// Color struct simply wraps RGB values
-struct color {
-    float r;
-    float g;
-    float b;
-    color() {}
-    color(float r, float g, float b) : r(r), g(g), b(b) {}
 };
 
 // Lights contain a position (specified by a vertex), a color, and an attenuation
@@ -101,10 +125,7 @@ struct object {
     vector<face *> faces;
     vector<MatrixXd> transformations;
     vector<MatrixXd> normal_transformations;
-    color ambient;
-    color diffuse;
-    color specular;
-    float shininess;
+    surface_material material;
     string label;
     object() {}
     object(vector<vertex *> vertices, vector<surface_normal *> normals,
@@ -137,10 +158,7 @@ struct object {
         faces = new_faces;
 
         transformations = other.transformations;
-        ambient = other.ambient;
-        diffuse = other.diffuse;
-        specular = other.specular;
-        shininess = other.shininess;
+        material = other.material;
         label = other.label;
     }
     ~object() {

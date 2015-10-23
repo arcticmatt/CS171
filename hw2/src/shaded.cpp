@@ -44,4 +44,11 @@ int main(int argc, const char* argv[]) {
         normalize_normals(o);
     }
     s->print();
+
+    /*
+     * PART 4: Implement the light algorithm. Don't forget attenuation.
+     * Remember that the same vertex on two different faces can have a different
+     * normal. So we will store the colors for vertices in the face struct.
+     * So when initializing the colors, we will loop through all the faces.
+     */
 }
