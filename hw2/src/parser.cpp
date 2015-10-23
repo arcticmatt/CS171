@@ -29,7 +29,6 @@ scene *parse_scene(ifstream &infile) {
      * Then call the method parse_objects to get the vector of objects.
      */
     while (getline(infile, line)) {
-        cout << line << endl;
         if (line.compare("objects:") == 0) {
             s->objects = parse_objects(infile);
             break;
@@ -65,7 +64,6 @@ scene *parse_scene(ifstream &infile) {
                 (iss >> perspective_param);
                 s->bottom = perspective_param;
             } else if (determ.compare("light") == 0) {
-                cout << "PUSHING BACK LIGHT" << endl;
                 (iss >> x >> y >> z >> garbage >> r >> g >> b >> garbage >> atten);
                 light *l = new light(x, y, z, r, g, b, atten);
                 s->lights.push_back(l);
