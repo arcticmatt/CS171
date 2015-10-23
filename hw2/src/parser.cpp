@@ -108,6 +108,8 @@ vector<object *> parse_objects(ifstream &infile) {
             MatrixXd matrix = get_matrix(determ, x, y, z, angle);
             // Add transformation matrix to current object copy
             object_copy->transformations.push_back(matrix);
+            if (determ != 't')
+                object_copy->normal_transformations.push_back(matrix);
             continue;
         }
 

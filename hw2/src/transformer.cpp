@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <cmath>
+#include <cassert>
 #include "transformer.h"
 using namespace std;
 
@@ -32,41 +33,72 @@ void map_to_screen_coords(object *o, int xres, int yres) {
 }
 
 /*
- * Applies all relevant transformations to every object in the scene.
+ * Applies a transformation (specified by a matrix) to a single vertex.
  */
-void apply_all_transformations(scene *s) {
-    for (object *o : s->objects)
-        apply_all_transformations(o, s);
-}
+void transform_vertex(vertex *v, MatrixXd mat) {
+    assert (v != NULL);
 
-/*
- * Given an object, applies all relevant transformations to it.
- */
-void apply_all_transformations(object *o, scene *s) {
-    // Apply geometric transforms specified by matrices stored by object
-    transform_object_geom(o);
-    // Apply world -> camera transform
-    transform_object_camera(o, s);
-    // Apply camera -> Cartesian NDC transform
-    transform_object_ndc(o, s);
+    MatrixXd vec(4,1);
+    vec << v->x, v->y, v->z, 1;
+    MatrixXd t_vec = mat * vec;
+    // Adjust the vector back to 3 dimensions, and change the vertex
+    float w = t_vec(3, 0);
+    v->x = t_vec(0,0) / w;
+    v->y = t_vec(1,0) / w;
+    v->z = t_vec(2,0) / w;
 }
 
 /*
  * Applies a transformation (specified by a matrix) to the vertices of an
  * object.
  */
-void transform_object(object *o, MatrixXd mat) {
+void transform_vertices(object *o, MatrixXd mat) {
     for (vertex *v : o->vertices) {
         if (v == NULL)
             continue;
-        MatrixXd vec(4,1);
-        vec << v->x, v->y, v->z, 1;
-        MatrixXd t_vec = mat * vec;
-        // Adjust the vector back to 3 dimensions, and change the vertex
-        float w = t_vec(3, 0);
-        v->x = t_vec(0,0) / w;
-        v->y = t_vec(1,0) / w;
-        v->z = t_vec(2,0) / w;
+        transform_vertex(v, mat);
+    }
+}
+
+/*
+ * Applies a transformation (specified by a matrix) to a single surface_normal.
+ */
+void transform_normal(surface_normal *n, MatrixXd mat) {
+    assert (n != NULL);
+
+    MatrixXd vec(4,1);
+    vec << n->x, n->y, n->z, 1;
+    MatrixXd t_vec = mat * vec;
+    // Adjust the vector back to 3 dimensions, and change the vertex
+    float w = t_vec(3, 0);
+    n->x = t_vec(0,0) / w;
+    n->y = t_vec(1,0) / w;
+    n->z = t_vec(2,0) / w;
+}
+
+/*
+ * Applies a transformation (specified by a matrix) to the normals of an
+ * object.
+ */
+void transform_normals(object *o, MatrixXd mat) {
+    for (surface_normal *n : o->normals) {
+        if (n == NULL)
+            continue;
+        transform_normal(n, mat);
+    }
+}
+
+/*
+ * Normalizes all the normals of an object. Call this after transforming.
+ */
+void normalize_normals(object *o) {
+    for (surface_normal *n : o->normals) {
+        if (n == NULL)
+            continue;
+        float magnitude = sqrt(n->x * n->x + n->y * n->y + n->z * n->z);
+        n->x /= magnitude;
+        n->y /= magnitude;
+        n->z /= magnitude;
     }
 }
 
@@ -76,24 +108,35 @@ void transform_object(object *o, MatrixXd mat) {
  */
 void transform_object_geom(object *o) {
     MatrixXd m = compute_product(o->transformations);
-    transform_object(o, m);
+    transform_vertices(o, m);
 }
 
 /*
+ * Transform each surface normal of an object by the correct normal
+ * transformation.
+ */
+void transform_object_normals(object *o) {
+    MatrixXd m = compute_product(o->normal_transformations);
+    transform_normals(o, m);
+}
+
+/*
+ * TODO: may not be needed
  * Applies the world -> camera transformation to an object.
  */
 void transform_object_camera(object *o, scene *s) {
     MatrixXd world_transf_mat = get_world_transform_matrix(s->position, s->orient);
-    transform_object(o, world_transf_mat);
+    transform_vertices(o, world_transf_mat);
 }
 
 /*
+ * TODO: may not be needed
  * Applies the perspective projection matrix to an object, transforming a point
  * in camera space to the Cartesian NDC (because we divide all the terms by w_{ndc})
  */
 void transform_object_ndc(object *o, scene *s) {
     MatrixXd ndc_transf_mat = get_perspective_projection_matrix(s);
-    transform_object(o, ndc_transf_mat);
+    transform_vertices(o, ndc_transf_mat);
 }
 
 /*

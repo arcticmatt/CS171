@@ -100,6 +100,7 @@ struct object {
     vector<surface_normal *> normals;
     vector<face *> faces;
     vector<MatrixXd> transformations;
+    vector<MatrixXd> normal_transformations;
     color ambient;
     color diffuse;
     color specular;
@@ -179,6 +180,8 @@ struct scene {
     float bottom;
     vector<object *> objects;
     vector<light *> lights;
+    MatrixXd pp_mat;
+    MatrixXd world_to_cam_mat;
     scene() {}
     ~scene() {
         for (object *o : objects) {
