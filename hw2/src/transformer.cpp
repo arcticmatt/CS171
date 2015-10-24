@@ -15,21 +15,31 @@ void map_to_screen_coords(scene *s, int xres, int yres) {
 
 /*
  * Goees through all vertices of an object and initializes their screen_x and
- * screen_y members. These memebers show how the NDC points map to screen coordinates
- * in a yres-by-xres pixel grid.
+ * screen_y members. These memebers show how the NDC coordinates map to screen
+ * coordinates in a yres-by-xres pixel grid.
  */
 void map_to_screen_coords(object *o, int xres, int yres) {
     for (vertex *v : o->vertices) {
         if (v == NULL)
             continue;
-        // Check to see if points fall outside of perspective cube
-        if (abs(v->x) >= 1 || abs(v->y) >= 1)
-            continue;
-        // Add one to make sure everything is non-negative, and then divide by
-        // 2 to scale everything back (because v->x and v->y now range from 0-2)
-        v->screen_x = (v->x + 1) * xres / 2;
-        v->screen_y = (v->y + 1) * yres / 2;
+        map_to_screen_coords(v, xres, yres);
     }
+}
+
+/*
+ * Initializes the screen_x and screen_y members of a vertex. These members
+ * show how the NDC coordinates map to screen coordinates in a yres-by-xres
+ * pixel grid.
+ */
+void map_to_screen_coords(vertex *v, int xres, int yres) {
+    // TODO: is the z check still invalid?
+    // Check to see if points fall outside of perspective cube
+    if (abs(v->x) >= 1 || abs(v->y) >= 1 || abs(v->z) >= 1)
+        return;
+    // Add one to make sure everything is non-negative, and then divide by
+    // 2 to scale everything back (because v->x and v->y now range from 0-2)
+    v->screen_x = (v->x + 1) * xres / 2;
+    v->screen_y = (v->y + 1) * yres / 2;
 }
 
 /*
@@ -41,6 +51,7 @@ void transform_vertex(vertex *v, MatrixXd mat) {
     MatrixXd vec(4,1);
     vec << v->x, v->y, v->z, 1;
     MatrixXd t_vec = mat * vec;
+
     // Adjust the vector back to 3 dimensions, and change the vertex
     float w = t_vec(3, 0);
     v->x = t_vec(0,0) / w;
@@ -103,6 +114,28 @@ void normalize_normals(object *o) {
 }
 
 /*
+ * Transform a vertex from world space to camera space and finally to
+ * NDC space.
+ *
+ * IMPORTANT: Before we apply a transformation, go through and save
+ * the world coordinates for each vertex. This is so we can interpolate
+ * these coordinates for the Phong shading algorithm.
+ */
+void world_to_ndc(vertex *v, scene *s) {
+    if (s->world_to_cam_mat.rows() == 0)
+        s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
+    if (s->pp_mat.rows() == 0)
+        s->pp_mat = get_perspective_projection_matrix(s);
+
+    // Save world coords
+    v->world_x = v->x;
+    v->world_y = v->y;
+    v->world_z = v->z;
+    transform_vertex(v, s->world_to_cam_mat);
+    transform_vertex(v, s->pp_mat);
+}
+
+/*
  * Applies a geometric transformation on an object given the vector of
  * transformation matrices it has stored.
  */
@@ -121,21 +154,26 @@ void transform_object_normals(object *o) {
 }
 
 /*
- * TODO: may not be needed
  * Applies the world -> camera transformation to an object.
  */
 void transform_object_camera(object *o, scene *s) {
-    MatrixXd world_transf_mat = get_world_transform_matrix(s->position, s->orient);
+    MatrixXd world_transf_mat;
+    if (s->world_to_cam_mat.rows() == 0)
+        s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
+    world_transf_mat = s->world_to_cam_mat;
     transform_vertices(o, world_transf_mat);
 }
 
 /*
- * TODO: may not be needed
  * Applies the perspective projection matrix to an object, transforming a point
  * in camera space to the Cartesian NDC (because we divide all the terms by w_{ndc})
+ *
  */
 void transform_object_ndc(object *o, scene *s) {
-    MatrixXd ndc_transf_mat = get_perspective_projection_matrix(s);
+    MatrixXd ndc_transf_mat;
+    if (s->pp_mat.rows() == 0)
+        s->pp_mat = get_perspective_projection_matrix(s);
+    ndc_transf_mat = s->pp_mat;
     transform_vertices(o, ndc_transf_mat);
 }
 

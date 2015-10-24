@@ -7,8 +7,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 
-using Eigen::MatrixXd;
-using Eigen::Vector3f;
+using namespace Eigen;
 using namespace std;
 
 /*******************************************************************************
@@ -41,6 +40,9 @@ struct vertex {
     float x;
     float y;
     float z;
+    float world_x;
+    float world_y;
+    float world_z;
     int screen_x = -1;
     int screen_y = -1;
     vertex() {}
@@ -200,6 +202,7 @@ struct scene {
     vector<light *> lights;
     MatrixXd pp_mat;
     MatrixXd world_to_cam_mat;
+    MatrixXd depth_buffer;
     scene() {}
     ~scene() {
         for (object *o : objects) {
@@ -228,5 +231,7 @@ struct scene {
         output_object_faces(objects);
     }
 };
+
+typedef Matrix<color, Dynamic, Dynamic> MatrixColor;
 
 #endif

@@ -202,12 +202,18 @@ object *parse_object(const char *filename) {
             normals.push_back(n);
         } else {
             (iss >> mult_x >> mult_y >> mult_z);
-            int v1 = mult_x.at(0) - '0';
-            int vn1 = mult_x.at(mult_x.size() - 1) - '0';
-            int v2 = mult_y.at(0) - '0';
-            int vn2 = mult_y.at(mult_y.size() - 1) - '0';
-            int v3 = mult_z.at(0) - '0';
-            int vn3 = mult_z.at(mult_z.size() - 1) - '0';
+            string v1_str = mult_x.substr(0, mult_x.find("//"));
+            string vn1_str = mult_x.substr(mult_x.find("//") + 2);
+            int v1 = stoi(v1_str);
+            int vn1 = stoi(vn1_str);
+            string v2_str = mult_y.substr(0, mult_y.find("//"));
+            string vn2_str = mult_y.substr(mult_y.find("//") + 2);
+            int v2 = stoi(v2_str);
+            int vn2 = stoi(vn2_str);
+            string v3_str = mult_z.substr(0, mult_z.find("//"));
+            string vn3_str = mult_z.substr(mult_z.find("//") + 2);
+            int v3 = stoi(v3_str);
+            int vn3 = stoi(vn3_str);
             face *f = new face(v1, v2, v3, vn1, vn2, vn3);
             faces.push_back(f);
         }
