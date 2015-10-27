@@ -171,7 +171,7 @@ ppm create_ppm(int xres, int yres, vector<char> grid) {
  */
 string get_object_line() {
     ostringstream color_string_stream;
-    color_string_stream << OBJECT_R << " " << " " << OBJECT_G << " " << OBJECT_B;
+    color_string_stream << OBJECT_R << " " << OBJECT_G << " " << OBJECT_B;
     string color_string = color_string_stream.str();
     return color_string;
 }
@@ -181,7 +181,7 @@ string get_object_line() {
  */
 string get_bg_line() {
     ostringstream color_string_stream;
-    color_string_stream << BG_R << " " << " " << BG_G << " " << BG_B;
+    color_string_stream << BG_R << " " << BG_G << " " << BG_B;
     string color_string = color_string_stream.str();
     return color_string;
 }
