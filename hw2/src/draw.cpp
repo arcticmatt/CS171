@@ -14,30 +14,31 @@ using namespace std;
  * This lends itself to Gouraud shading's other name, per vertex lighting.
  */
 void gouraud_shading(face *f, object *o, scene *s, MatrixColor& grid) {
+    cout << "================= GOURAUD SHADING =================" << endl;
     vertex *a = o->vertices[f->v1];
     vertex *b = o->vertices[f->v2];
     vertex *c = o->vertices[f->v3];
 
-    //cout << "lighting..." << endl;
+    cout << "lighting..." << endl;
 
-    //cout << "lighting for vertex #" << f->v1 << ", normal #" << f->vn1 << endl;
+    cout << "lighting for vertex #" << f->v1 << ", normal #" << f->vn1 << endl;
     f->c1 = lighting(a, o->normals[f->vn1], o->material, s);
-    //cout << "lighting for vertex #" << f->v2 << ", normal #" << f->vn2 << endl;
+    cout << "lighting for vertex #" << f->v2 << ", normal #" << f->vn2 << endl;
     f->c2 = lighting(b, o->normals[f->vn2], o->material, s);
-    //cout << "lighting for vertex #" << f->v3 << ", normal #" << f->vn3 << endl;
+    cout << "lighting for vertex #" << f->v3 << ", normal #" << f->vn3 << endl;
     f->c3 = lighting(c, o->normals[f->vn3], o->material, s);
 
-    //cout << "converting world -> ndc..." << endl;
+    cout << "converting world -> ndc..." << endl;
 
     world_to_ndc(a, s);
     world_to_ndc(b, s);
     world_to_ndc(c, s);
 
-    //cout << "rasterizing colored triangles..." << endl;
+    cout << "rasterizing colored triangles..." << endl;
 
     raster_colored_triangle(a, b, c, f->c1, f->c2, f->c3, grid, s->depth_buffer);
 
-    //cout << "Done with gouaraud shading!" << endl;
+    cout << "================= DONE WITH GOURAUD SHADING =================" << endl;
 }
 
 /*
@@ -53,7 +54,6 @@ void gouraud_shading(face *f, object *o, scene *s, MatrixColor& grid) {
  * surface_normal) to Eigen Vectors to make the vector math easier to perform.
  */
 color lighting(vertex *v, surface_normal *n, surface_material m, scene *s) {
-    //cout << "================= LIGHTING =================" << endl;
     Vector3f col_diff = m.diffuse.get_vec();
     Vector3f col_amb = m.ambient.get_vec();
     Vector3f col_spec = m.specular.get_vec();
@@ -83,24 +83,24 @@ color lighting(vertex *v, surface_normal *n, surface_material m, scene *s) {
         float attenuation_const = 1.0 /
             (1.0 + l->attenuation * light_distance * light_distance);
         light_col *= attenuation_const; // Scalar product
-        //cout << "light_color (after attenuation) = (" <<
-            //light_col(0,0) << "," << light_col(1,0) << "," << light_col(2,0) <<
-            //")" << endl;
+        cout << "light_color (after attenuation) = (" <<
+            light_col(0,0) << "," << light_col(1,0) << "," << light_col(2,0) <<
+            ")" << endl;
 
         // Scalar prod
         float dot_prod_diff = normal_vec.dot(light_dir);
         Vector3f light_diff = light_col * max(zero, dot_prod_diff);
-        //cout << "light_diff = (" <<
-            //light_diff(0,0) << "," << light_diff(1,0) << "," << light_diff(2,0) <<
-            //")" << endl;
+        cout << "light_diff = (" <<
+            light_diff(0,0) << "," << light_diff(1,0) << "," << light_diff(2,0) <<
+            ")" << endl;
         diff_sum += light_diff;
 
         Vector3f h = (cam_dir + light_dir).normalized();
         float dot_prod_spec = normal_vec.dot(h);
         Vector3f light_spec = light_col * pow(max(zero, dot_prod_spec), shine);
-        //cout << "light_spec = (" <<
-            //light_spec(0,0) << "," << light_spec(1,0) << "," << light_spec(2,0) <<
-            //")" << endl;
+        cout << "light_spec = (" <<
+            light_spec(0,0) << "," << light_spec(1,0) << "," << light_spec(2,0) <<
+            ")" << endl;
         spec_sum += light_spec;
     }
 
@@ -108,8 +108,10 @@ color lighting(vertex *v, surface_normal *n, surface_material m, scene *s) {
     Vector3f col = col_amb + diff_sum.cwiseProduct(col_diff) +
         spec_sum.cwiseProduct(col_spec);
     Vector3f min_color = ones.cwiseMin(col);
+    cout << "final_color = (" <<
+        min_color(0,0) << "," << min_color(1,0) << "," << min_color(2,0) <<
+        ")" << endl;
     color final_color(min_color(0, 0), min_color(1, 0), min_color(2, 0));
-    //cout << "================= END =================" << endl;
     return final_color;
 }
 
@@ -130,6 +132,12 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color c_a,
     Vector3f ndc_a = a->get_vec();
     Vector3f ndc_b = b->get_vec();
     Vector3f ndc_c = c->get_vec();
+    cout << "ndc_a = (" << ndc_a(0,0) << "," << ndc_a(1,0) << "," << ndc_a(2,0) <<
+        ")" << endl;
+    cout << "ndc_b = (" << ndc_b(0,0) << "," << ndc_b(1,0) << "," << ndc_b(2,0) <<
+        ")" << endl;
+    cout << "ndc_c = (" << ndc_c(0,0) << "," << ndc_c(1,0) << "," << ndc_c(2,0) <<
+        ")" << endl;
 
     // Perform backface culling, ignoring faces facing away from the camera
     Vector3f cross = (ndc_c - ndc_b).cross(ndc_a - ndc_b);
@@ -153,8 +161,8 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color c_a,
     int y_min = min({y_a, y_b, y_c});
     int y_max = max({y_a, y_b, y_c});
 
-    //cout << "x_min = " << x_min << " and y_min = " << y_min << endl;
-    //cout << "x_max = " << x_max << " and y_max = " << y_max << endl;
+    cout << "x_min = " << x_min << " and y_min = " << y_min << endl;
+    cout << "x_max = " << x_max << " and y_max = " << y_max << endl;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             //cout << "iteration (x, y) = ( " << x << "," << y << ")" << endl;

@@ -32,10 +32,6 @@ void map_to_screen_coords(object *o, int xres, int yres) {
  * pixel grid.
  */
 void map_to_screen_coords(vertex *v, int xres, int yres) {
-    // TODO: is the z check still invalid?
-    // Check to see if points fall outside of perspective cube
-    if (abs(v->x) >= 1 || abs(v->y) >= 1 || abs(v->z) >= 1)
-        return;
     // Add one to make sure everything is non-negative, and then divide by
     // 2 to scale everything back (because v->x and v->y now range from 0-2)
     v->screen_x = (v->x + 1) * xres / 2;

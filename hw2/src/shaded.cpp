@@ -82,6 +82,6 @@ int main(int argc, const char* argv[]) {
 
     // Create ppm from grid and output it to stdout
     ppm p = create_ppm(xres, yres, grid);
-    for (string line : p.lines)
-        cout << line << endl;
+    //for (string line : p.lines)
+        //cout << line << endl;
 }
