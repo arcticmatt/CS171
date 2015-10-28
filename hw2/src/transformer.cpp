@@ -5,28 +5,6 @@
 using namespace std;
 
 /*
- * For every object in a scene, initialize the screen coordinate members of all
- * its vertices (using the overloaded method).
- */
-void map_to_screen_coords(scene *s, int xres, int yres) {
-    for (object *o : s->objects)
-        map_to_screen_coords(o, xres, yres);
-}
-
-/*
- * Goees through all vertices of an object and initializes their screen_x and
- * screen_y members. These memebers show how the NDC coordinates map to screen
- * coordinates in a yres-by-xres pixel grid.
- */
-void map_to_screen_coords(object *o, int xres, int yres) {
-    for (vertex *v : o->vertices) {
-        if (v == NULL)
-            continue;
-        map_to_screen_coords(v, xres, yres);
-    }
-}
-
-/*
  * Initializes the screen_x and screen_y members of a vertex. These members
  * show how the NDC coordinates map to screen coordinates in a yres-by-xres
  * pixel grid.
@@ -159,19 +137,6 @@ void transform_object_normals(object *o) {
 void transform_object_geom(object *o) {
     MatrixXd m = compute_product(o->transformations);
     transform_vertices(o, m);
-}
-
-/*
- * Applies the perspective projection matrix to an object, transforming a point
- * in camera space to the Cartesian NDC (because we divide all the terms by w_{ndc})
- *
- */
-void transform_object_ndc(object *o, scene *s) {
-    MatrixXd ndc_transf_mat;
-    if (s->pp_mat.rows() == 0)
-        s->pp_mat = get_perspective_projection_matrix(s);
-    ndc_transf_mat = s->pp_mat;
-    transform_vertices(o, ndc_transf_mat);
 }
 
 /*

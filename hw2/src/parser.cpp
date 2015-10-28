@@ -43,11 +43,6 @@ scene *parse_scene(ifstream &infile) {
                 s->position = position;
             } else if (determ.compare("orientation") == 0) {
                 (iss >> x >> y >> z >> angle);
-                // NORMALIZE ORIENTATIOn
-                float magnitude = sqrt(x * x + y * y + z * z);
-                x /= magnitude;
-                y /= magnitude;
-                z /= magnitude;
                 orientation orient(x, y, z, angle);
                 s->orient = orient;
             } else if (determ.compare("near") == 0) {

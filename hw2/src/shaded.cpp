@@ -26,8 +26,6 @@ int main(int argc, const char* argv[]) {
      * PART 2: Create transformation matrices, and apply geometric
      * transformations to each object-copy's vertices.
      */
-    //cout << "orientation = (" << s->orient.x << "," << s->orient.y << "," <<
-        //s->orient.z << ")" << endl;
     s->pp_mat = get_perspective_projection_matrix(s);
     s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
     for (object *o : s->objects) {
@@ -80,8 +78,6 @@ int main(int argc, const char* argv[]) {
     } else if (mode == 1) {
         for (object *o : s->objects) {
             for (face *f : o->faces) {
-                // This takes care of calling the lighting algorithm and the
-                // rasterization algorithm
                 phong_shading(f, o, s, grid, s->depth_buffer);
             }
         }

@@ -54,6 +54,7 @@ void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
     vertex *b_ndc = world_to_ndc(b, s);
     vertex *c_ndc = world_to_ndc(c, s);
 
+    // Get NDC coords as eigen vectors
     Vector3f ndc_a = a_ndc->get_vec();
     Vector3f ndc_b = b_ndc->get_vec();
     Vector3f ndc_c = c_ndc->get_vec();
@@ -62,10 +63,11 @@ void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
     Vector3f cross = (ndc_c - ndc_b).cross(ndc_a - ndc_b);
     if (cross(2, 0) < 0)
         return;
+
+    // Get the screen coords
     map_to_screen_coords(a_ndc, xres, yres);
     map_to_screen_coords(b_ndc, xres, yres);
     map_to_screen_coords(c_ndc, xres, yres);
-
     int x_a = a_ndc->screen_x;
     int y_a = a_ndc->screen_y;
     int x_b = b_ndc->screen_x;
@@ -96,6 +98,7 @@ void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
                 // other points
                 if (in_cube && ndc(2, 0) <= depth_buffer(y, x)) {
                     depth_buffer(y, x) = ndc(2, 0);
+                    // World/normal interpolation
                     Vector3f vert = alpha * a_ndc->get_world_vec()
                         + beta * b_ndc->get_world_vec()
                         + gamma * c_ndc->get_world_vec();
@@ -105,6 +108,7 @@ void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
                     surface_normal *n = new surface_normal(norm(0,0),
                             norm(1,0), norm(2,0));
                     color c = lighting(v, n, o->material, s);
+                    // IMPORTANT: adjust y coordinate
                     grid(yres - 1 - y, x) = c;
                 }
             }
@@ -189,6 +193,7 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color& c_a,
     int xres = grid.cols();
     int yres = grid.rows();
 
+    // Get NDC coords as eigen vectors
     Vector3f ndc_a = a->get_vec();
     Vector3f ndc_b = b->get_vec();
     Vector3f ndc_c = c->get_vec();
@@ -197,10 +202,11 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color& c_a,
     Vector3f cross = (ndc_c - ndc_b).cross(ndc_a - ndc_b);
     if (cross(2, 0) < 0)
         return;
+
+    // Get the screen coords
     map_to_screen_coords(a, xres, yres);
     map_to_screen_coords(b, xres, yres);
     map_to_screen_coords(c, xres, yres);
-
     int x_a = a->screen_x;
     int y_a = a->screen_y;
     int x_b = b->screen_x;
@@ -229,10 +235,12 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color& c_a,
                 cout.flush();
                 if (in_cube && ndc(2, 0) <= depth_buffer(y, x)) {
                     depth_buffer(y, x) = ndc(2, 0);
+                    // Color interpolation
                     float r = alpha * c_a.r + beta * c_b.r + gamma * c_c.r;
                     float g = alpha * c_a.g + beta * c_b.g + gamma * c_c.g;
                     float b = alpha * c_a.b + beta * c_b.b + gamma * c_c.b;
                     color c(r, g, b);
+                    // IMPORTANT: adjust y coordinate
                     grid(yres - 1 - y, x) = c;
                 }
             }
@@ -321,6 +329,8 @@ ppm create_ppm(int xres, int yres, MatrixColor grid) {
  */
 string get_line(color c) {
     ostringstream color_string_stream;
+    // IMPORTANT: ppm values must be ints, and must be adjusted to values
+    // relative to 255
     int red = (int) (c.r * 255);
     int green = (int) (c.g * 255);
     int blue = (int) (c.b * 255);
