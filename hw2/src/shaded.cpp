@@ -19,9 +19,6 @@ int main(int argc, const char* argv[]) {
     int yres = atoi(argv[3]);
     int mode = atoi(argv[4]);
 
-    //cout << "SHADER: xres = " << xres << ", yres = " << yres << ", mode = " <<
-        //mode << endl;
-
     /* PART 1: Parse the scene description file */
     scene *s = parse_scene(infile);
 
@@ -70,6 +67,7 @@ int main(int argc, const char* argv[]) {
         }
     }
     s->depth_buffer = depth_buffer;
+    //s->print();
     if (mode == 0) {
         for (object *o : s->objects) {
             for (face *f : o->faces) {
@@ -78,10 +76,18 @@ int main(int argc, const char* argv[]) {
                 gouraud_shading(f, o, s, grid);
             }
         }
+    } else if (mode == 1) {
+        for (object *o : s->objects) {
+            for (face *f : o->faces) {
+                // This takes care of calling the lighting algorithm and the
+                // rasterization algorithm
+                phong_shading(f, o, s, grid, s->depth_buffer);
+            }
+        }
     }
 
     // Create ppm from grid and output it to stdout
     ppm p = create_ppm(xres, yres, grid);
-    //for (string line : p.lines)
-        //cout << line << endl;
+    for (string line : p.lines)
+        cout << line << endl;
 }

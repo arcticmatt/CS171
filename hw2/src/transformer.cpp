@@ -39,6 +39,15 @@ void map_to_screen_coords(vertex *v, int xres, int yres) {
 }
 
 /*
+ * Get a pointer to a vertex transformed by the passed-in matrix.
+ */
+vertex *get_transformed_vertex(vertex *v, MatrixXd mat) {
+    vertex *copy = new vertex(*v);
+    transform_vertex(copy, mat);
+    return copy;
+}
+
+/*
  * Applies a transformation (specified by a matrix) to a single vertex.
  */
 void transform_vertex(vertex *v, MatrixXd mat) {
@@ -117,27 +126,19 @@ void normalize_normals(object *o) {
  * the world coordinates for each vertex. This is so we can interpolate
  * these coordinates for the Phong shading algorithm.
  */
-void world_to_ndc(vertex *v, scene *s) {
+vertex *world_to_ndc(vertex *v, scene *s) {
     if (s->world_to_cam_mat.rows() == 0)
         s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
     if (s->pp_mat.rows() == 0)
         s->pp_mat = get_perspective_projection_matrix(s);
 
+    vertex *transformed = get_transformed_vertex(v, s->world_to_cam_mat);
+    transform_vertex(transformed, s->pp_mat);
     // Save world coords
-    v->world_x = v->x;
-    v->world_y = v->y;
-    v->world_z = v->z;
-    transform_vertex(v, s->world_to_cam_mat);
-    transform_vertex(v, s->pp_mat);
-}
-
-/*
- * Applies a geometric transformation on an object given the vector of
- * transformation matrices it has stored.
- */
-void transform_object_geom(object *o) {
-    MatrixXd m = compute_product(o->transformations);
-    transform_vertices(o, m);
+    transformed->world_x = v->x;
+    transformed->world_y = v->y;
+    transformed->world_z = v->z;
+    return transformed;
 }
 
 /*
@@ -146,18 +147,18 @@ void transform_object_geom(object *o) {
  */
 void transform_object_normals(object *o) {
     MatrixXd m = compute_product(o->normal_transformations);
+    m = m.inverse().transpose();
     transform_normals(o, m);
 }
 
+
 /*
- * Applies the world -> camera transformation to an object.
+ * Applies a geometric transformation on an object given the vector of
+ * transformation matrices it has stored.
  */
-void transform_object_camera(object *o, scene *s) {
-    MatrixXd world_transf_mat;
-    if (s->world_to_cam_mat.rows() == 0)
-        s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
-    world_transf_mat = s->world_to_cam_mat;
-    transform_vertices(o, world_transf_mat);
+void transform_object_geom(object *o) {
+    MatrixXd m = compute_product(o->transformations);
+    transform_vertices(o, m);
 }
 
 /*
@@ -200,7 +201,13 @@ MatrixXd get_camera_transform_matrix(vertex position, orientation orient) {
  * of the camera transform. So this just returns the inverse.
  */
 MatrixXd get_world_transform_matrix(vertex position, orientation orient) {
+    //cout << "position = (" << position.x << "," << position.y << "," <<
+        //position.z << ")" << endl;
+    //cout << "orient = (" << orient.x << "," << orient.y << "," <<
+        //orient.z << ")" << endl;
     MatrixXd cam_transf_mat = get_camera_transform_matrix(position, orient);
+    //cout << "cam_transf_mat:" << endl;
+    //cout << cam_transf_mat << endl;
     return cam_transf_mat.inverse();
 }
 
@@ -221,5 +228,7 @@ MatrixXd get_perspective_projection_matrix(scene *s) {
         0, (2 * n) / (t - b), (t + b) / (t - b), 0,
         0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n),
         0, 0, -1, 0;
+    //cout << "pp_mat:" << endl;
+    //cout << m << endl;
     return m;
 }

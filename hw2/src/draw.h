@@ -20,9 +20,12 @@ ppm create_ppm(int xres, int yres, MatrixColor grid);
 string get_line(color c);
 
 void gouraud_shading(face *f, object *o, scene *s, MatrixColor& grid);
+void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
+        MatrixXd& depth_buffer);
 color lighting(vertex *v, surface_normal *n, surface_material m, scene *s);
 void raster_colored_triangle(vertex *a, vertex *b, vertex *c,
-        color c_a, color c_b, color c_c, MatrixColor& grid, MatrixXd depth_buffer);
+        color &c_a, color &c_b, color &c_c, MatrixColor& grid,
+        MatrixXd &depth_buffer);
 float compute_alpha(int x_a, int y_a, int x_b, int y_b, int x_c, int y_c,
         int x, int y);
 float compute_beta(int x_a, int y_a, int x_b, int y_b, int x_c, int y_c,

@@ -15,12 +15,13 @@ void map_to_screen_coords(scene *s, int xres, int yres);
 void map_to_screen_coords(object *o, int xres, int yres);
 void map_to_screen_coords(vertex *v, int xres, int yres);
 
+vertex *get_transformed_vertex(vertex *v, MatrixXd mat);
 void transform_vertex(vertex *v, MatrixXd mat);
 void transform_vertices(object *o, MatrixXd mat);
 void transform_normals(object *o, MatrixXd mat);
 void transform_normal(object *o, MatrixXd mat);
 void normalize_normals(object *o);
-void world_to_ndc(vertex *v, scene *s);
+vertex *world_to_ndc(vertex *v, scene *s);
 void transform_object_camera(object *o, scene *s);
 void transform_object_ndc(object *o, scene *s);
 void transform_object_geom(object *o);

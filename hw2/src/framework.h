@@ -52,6 +52,10 @@ struct vertex {
         Vector3f vec(x, y, z);
         return vec;
     }
+    Vector3f get_world_vec() {
+        Vector3f vec(world_x, world_y, world_z);
+        return vec;
+    }
 };
 
 // Surface Normal struct contains the three points components of a surface normal.
