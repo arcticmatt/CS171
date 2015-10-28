@@ -14,37 +14,29 @@ using namespace std;
  * This lends itself to Gouraud shading's other name, per vertex lighting.
  */
 void gouraud_shading(face *f, object *o, scene *s, MatrixColor& grid) {
-    //cout << "================= GOURAUD SHADING =================" << endl;
-    //cout << "f " << f->v1 << "//" << f->vn1 << " "
-        //<< f->v2 << "//" << f->vn2 << " "
-            //<< f->v3 << "//" << f->vn3 << endl;
     vertex *a = o->vertices[f->v1];
     vertex *b = o->vertices[f->v2];
     vertex *c = o->vertices[f->v3];
 
-    //cout << "lighting..." << endl;
-
-    //cout << "lighting for vertex #" << f->v1 << ", normal #" << f->vn1 << endl;
     f->c1 = lighting(a, o->normals[f->vn1], o->material, s);
-    //cout << "lighting for vertex #" << f->v2 << ", normal #" << f->vn2 << endl;
     f->c2 = lighting(b, o->normals[f->vn2], o->material, s);
-    //cout << "lighting for vertex #" << f->v3 << ", normal #" << f->vn3 << endl;
     f->c3 = lighting(c, o->normals[f->vn3], o->material, s);
-
-    //cout << "converting world -> ndc..." << endl;
 
     vertex *a_ndc = world_to_ndc(a, s);
     vertex *b_ndc = world_to_ndc(b, s);
     vertex *c_ndc = world_to_ndc(c, s);
 
-    //cout << "rasterizing colored triangles..." << endl;
-
     raster_colored_triangle(a_ndc, b_ndc, c_ndc,
             f->c1, f->c2, f->c3, grid, s->depth_buffer);
-
-    //cout << "================= DONE WITH GOURAUD SHADING =================" << endl;
 }
 
+/*
+ * This is the Phong shading algorithm. The idea is that for each face/triangle
+ * of our object, we interpolate the world coordinates and normals of the vertices
+ * across the triangle. Then, during the rasterization process, for each pixel
+ * we rasterize, we call the lighting model with the world coordinates and normal
+ * corresponding to the pixel and rasterize the pixel with the resulting color.
+ */
 void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
         MatrixXd& depth_buffer) {
     int xres = grid.cols();
@@ -100,6 +92,8 @@ void phong_shading(face *f, object *o, scene *s, MatrixColor& grid,
                 bool in_cube = abs(ndc(0, 0)) <= 1 && abs(ndc(1, 0)) <= 1
                     && abs(ndc(2, 0)) <= 1;
 
+                // Perform depth buffering, so we don't render points behind
+                // other points
                 if (in_cube && ndc(2, 0) <= depth_buffer(y, x)) {
                     depth_buffer(y, x) = ndc(2, 0);
                     Vector3f vert = alpha * a_ndc->get_world_vec()
@@ -161,11 +155,12 @@ color lighting(vertex *v, surface_normal *n, surface_material m, scene *s) {
             (1.0 + l->attenuation * light_distance * light_distance);
         light_col *= attenuation_const; // Scalar product
 
-        // Scalar prod
+        // Add to diffuse sum
         float dot_prod_diff = normal_vec.dot(light_dir);
         Vector3f light_diff = light_col * max(zero, dot_prod_diff);
         diff_sum += light_diff;
 
+        // Add to specular sum
         Vector3f h = (cam_dir + light_dir).normalized();
         float dot_prod_spec = normal_vec.dot(h);
         Vector3f light_spec = light_col * pow(max(zero, dot_prod_spec), shine);
@@ -197,12 +192,6 @@ void raster_colored_triangle(vertex *a, vertex *b, vertex *c, color& c_a,
     Vector3f ndc_a = a->get_vec();
     Vector3f ndc_b = b->get_vec();
     Vector3f ndc_c = c->get_vec();
-    //cout << "ndc_a = (" << ndc_a(0,0) << "," << ndc_a(1,0) << "," << ndc_a(2,0) <<
-        //")" << endl;
-    //cout << "ndc_b = (" << ndc_b(0,0) << "," << ndc_b(1,0) << "," << ndc_b(2,0) <<
-        //")" << endl;
-    //cout << "ndc_c = (" << ndc_c(0,0) << "," << ndc_c(1,0) << "," << ndc_c(2,0) <<
-        //")\n" << endl;
 
     // Perform backface culling, ignoring faces facing away from the camera
     Vector3f cross = (ndc_c - ndc_b).cross(ndc_a - ndc_b);
@@ -336,7 +325,6 @@ string get_line(color c) {
     int green = (int) (c.g * 255);
     int blue = (int) (c.b * 255);
     color_string_stream << red << " " << green << " " << blue;
-    //color_string_stream << 255 << " " << 0 << " " << 0;
     string color_string = color_string_stream.str();
     return color_string;
 }

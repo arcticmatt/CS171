@@ -189,8 +189,8 @@ MatrixXd get_camera_transform_matrix(vertex position, orientation orient) {
     MatrixXd rot_mat = get_rotation_matrix(orient.x, orient.y,
             orient.z, orient.angle);
     vector<MatrixXd> matrices;
-    matrices.push_back(transl_mat);
     matrices.push_back(rot_mat);
+    matrices.push_back(transl_mat);
     MatrixXd cam_transf_mat = compute_product(matrices);
     return cam_transf_mat;
 }
@@ -201,13 +201,7 @@ MatrixXd get_camera_transform_matrix(vertex position, orientation orient) {
  * of the camera transform. So this just returns the inverse.
  */
 MatrixXd get_world_transform_matrix(vertex position, orientation orient) {
-    //cout << "position = (" << position.x << "," << position.y << "," <<
-        //position.z << ")" << endl;
-    //cout << "orient = (" << orient.x << "," << orient.y << "," <<
-        //orient.z << ")" << endl;
     MatrixXd cam_transf_mat = get_camera_transform_matrix(position, orient);
-    //cout << "cam_transf_mat:" << endl;
-    //cout << cam_transf_mat << endl;
     return cam_transf_mat.inverse();
 }
 
@@ -228,7 +222,5 @@ MatrixXd get_perspective_projection_matrix(scene *s) {
         0, (2 * n) / (t - b), (t + b) / (t - b), 0,
         0, 0, -(f + n) / (f - n), -(2 * f * n) / (f - n),
         0, 0, -1, 0;
-    //cout << "pp_mat:" << endl;
-    //cout << m << endl;
     return m;
 }

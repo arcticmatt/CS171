@@ -1,41 +1,7 @@
-General outline:
-make light struct
+To run this program, navigate into the src directory and type make. This will
+generate the "shaded" executable. This can then be run with the following args:
 
-parse camera info and lights into scene
-    - for lights, make vector of light structs
-
-make color struct
-
-add ambient, diffuse, and specular color struct to object struct
-also add shininess value
-
-add surface_normal struct
-add vector of surface normals to object
-
-normal indices start at 1!
-
-
-Part 1: Parse everything.
-
-Part 2: Make transformation vertices, and apply the geometric transformations.
-        Don't apply the camera/NDC transformations though, keep points in world
-        space. Write a method to transform points from world to NDC, and from
-        NDC to screen.
-
-Part 3: Transform surface normals by correct NORMAL TRANSFORMATIONS (see notes).
-        NORMALIZE the normals after transforming to make them unit vectors.
-
-Part 4: Implement the algorithm for the lighting model. Include attenuation.
-
-Part 5: Implement the algorithm for rasterizing colored triangles with
-        interpoloation via barycentric coordinates, backface culling, and depth
-        buffering. Remember the depth buffer (global variable?).
-
-Part 6: Implement the Gouraud shading algorithm using the lighting and triangle
-        rasterization algorithms. If the mode is 0, this algorithm should be
-        called.
-
-Part 7: Implement the full Phong shading algorithm. If the mode is 1, this
-        algorithm should be called.
-
-Part 8: Output the pixel grid to standard output as a .ppm image file.
+input file
+xres
+yres
+mode

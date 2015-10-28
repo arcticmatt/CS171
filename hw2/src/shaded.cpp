@@ -26,6 +26,8 @@ int main(int argc, const char* argv[]) {
      * PART 2: Create transformation matrices, and apply geometric
      * transformations to each object-copy's vertices.
      */
+    //cout << "orientation = (" << s->orient.x << "," << s->orient.y << "," <<
+        //s->orient.z << ")" << endl;
     s->pp_mat = get_perspective_projection_matrix(s);
     s->world_to_cam_mat = get_world_transform_matrix(s->position, s->orient);
     for (object *o : s->objects) {
@@ -67,7 +69,6 @@ int main(int argc, const char* argv[]) {
         }
     }
     s->depth_buffer = depth_buffer;
-    //s->print();
     if (mode == 0) {
         for (object *o : s->objects) {
             for (face *f : o->faces) {
