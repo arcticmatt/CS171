@@ -19,7 +19,7 @@
  * The overall idea of what this program does is given on the
  * "System Recommendations and Installation Instructions" page of the website.
  */
- 
+
 
 /* The following 2 headers contain all the main functions, data structures, and
  * variables that allow for OpenGL development.
@@ -92,13 +92,13 @@ struct Point_Light
      * Index 3 has the w-coordinate
      */
     float position[4];
-    
+
     /* Index 0 has the r-component
      * Index 1 has the g-component
      * Index 2 has the b-component
      */
     float color[3];
-    
+
     /* This is our 'k' factor for attenuation as discussed in the lecture notes
      * and extra credit of Assignment 2.
      */
@@ -138,7 +138,7 @@ struct Transforms
     float translation[3];
     float rotation[3];
     float scaling[3];
-    
+
     /* Angle in degrees.
      */
     float rotation_angle;
@@ -185,9 +185,9 @@ struct Object
      */
     vector<Triple> vertex_buffer;
     vector<Triple> normal_buffer;
-    
+
     vector<Transforms> transform_sets;
-    
+
     /* Index 0 has the r-component
      * Index 1 has the g-component
      * Index 2 has the b-component
@@ -195,7 +195,7 @@ struct Object
     float ambient_reflect[3];
     float diffuse_reflect[3];
     float specular_reflect[3];
-    
+
     float shininess;
 };
 
@@ -208,7 +208,7 @@ struct Object
  * file (like this one), then it is sometimes more convenient to just have
  * all the camera specifications and parameters as global variables.
  */
- 
+
 /* Index 0 has the x-coordinate
  * Index 1 has the y-coordinate
  * Index 2 has the z-coordinate
@@ -217,7 +217,7 @@ float cam_position[] = {0.9, 0, 5.4};
 float cam_orientation_axis[] = {0, 0, 1};
 
 /* Angle in degrees.
- */ 
+ */
 float cam_orientation_angle = 0;
 
 float near_param = 1, far_param = 20,
@@ -228,7 +228,7 @@ float near_param = 1, far_param = 20,
 
 /* Self-explanatory lists of lights and objects.
  */
- 
+
 vector<Point_Light> lights;
 vector<Object> objects;
 
@@ -266,10 +266,10 @@ void create_cubes();
 
 /* From here on are all the function implementations.
  */
- 
+
 
 /* 'init' function:
- * 
+ *
  * As you would expect, the 'init' function initializes and sets up the
  * program. It should always be called before anything else.
  *
@@ -277,7 +277,7 @@ void create_cubes();
  * could just put all your initializations in the beginning of the 'main'
  * function instead. However, doing so is bad style; it is cleaner to have all
  * your initializations contained within one function.
- * 
+ *
  * Before we go into the function itself, it is important to mention that
  * OpenGL works like a state machine. It will do different procedures depending
  * on what state it is in.
@@ -302,12 +302,12 @@ void init(void)
      *
      * If you wanted to tell OpenGL to use flat shading at any point, then you
      * would use the following line:
-     
+
        glShadeModel(GL_FLAT);
-       
+
      */
     glShadeModel(GL_SMOOTH);
-    
+
     /* The next line of code tells OpenGL to use "culling" when rendering. The
      * line right after it tells OpenGL that the particular "culling" technique
      * we want it to use is backface culling.
@@ -319,11 +319,11 @@ void init(void)
      */
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
-    
+
     /* The following line tells OpenGL to use depth buffering when rendering.
      */
     glEnable(GL_DEPTH_TEST);
-    
+
     /* The following two lines tell OpenGL to enable its "vertex array" and
      * "normal array" functionality. More details on these arrays are given
      * in the comments on the 'Object' struct and the 'draw_objects' and
@@ -331,7 +331,7 @@ void init(void)
      */
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
-    
+
     /* The next 4 lines work with OpenGL's two main matrices: the "Projection
      * Matrix" and the "Modelview Matrix". Only one of these two main matrices
      * can be modified at any given time. We specify the main matrix that we
@@ -363,16 +363,16 @@ void init(void)
      * Then, after 'F' is created, OpenGL performs the following operation:
      *
      * P = P * F
-     * 
+     *
      * Since we had set the Projection Matrix to the identity matrix before the
      * call to 'glFrustum', the above multiplication results in the Projection
      * Matrix being the perspective projection matrix, which is what we want.
      */
-    
+
     /* The Modelview Matrix is the matrix that OpenGL applies to untransformed
      * points in world space. OpenGL applies the Modelview Matrix to points
      * BEFORE it applies the Projection Matrix.
-     * 
+     *
      * Thus, for our purposes, we want the Modelview Matrix to be the overall
      * transformation matrix that we apply to points in world space before
      * applying the perspective projection matrix. This means we would need to
@@ -388,7 +388,7 @@ void init(void)
      * for details.
      */
     glMatrixMode(GL_MODELVIEW);
-    
+
     /* The next two lines call our 2 helper functions that create some Point
      * Light and Object structs for us to render. Further details will be given
      * in the functions themselves.
@@ -398,7 +398,7 @@ void init(void)
      */
     create_cubes();
     create_lights();
-    
+
     /* The next line calls our function that tells OpenGL to initialize some
      * lights to represent our Point Light structs. Further details will be
      * given in the function itself.
@@ -410,17 +410,17 @@ void init(void)
 }
 
 /* 'reshape' function:
- * 
+ *
  * You will see down below in the 'main' function that whenever we create a
  * window in OpenGL, we have to specify a function for OpenGL to call whenever
  * the window resizes. We typically call this function 'reshape' or 'resize'.
- * 
+ *
  * The 'reshape' function is supposed to tell your program how to react
  * whenever the program window is resized. It is also called in the beginning
  * when the window is first created. You can think of the first call to
  * 'reshape' as an initialization phase and all subsequent calls as update
  * phases.
- * 
+ *
  * Anything that needs to know the dimensions of the program window should
  * be initialized and updated in the 'reshape' function. You will see below
  * that we use the 'reshape' function to initialize and update the conversion
@@ -435,7 +435,7 @@ void reshape(int width, int height)
      */
     height = (height == 0) ? 1 : height;
     width = (width == 0) ? 1 : width;
-    
+
     /* The 'glViewport' function tells OpenGL to determine how to convert from
      * NDC to screen coordinates given the dimensions of the window. The
      * parameters for 'glViewport' are (in the following order):
@@ -452,13 +452,13 @@ void reshape(int width, int height)
      * to render them.
      */
     glViewport(0, 0, width, height);
-    
+
     /* The following two lines are specific to updating our mouse interface
      * parameters. Details will be given in the 'mouse_moved' function.
      */
     mouse_scale_x = (float) (right_param - left_param) / (float) width;
     mouse_scale_y = (float) (top_param - bottom_param) / (float) height;
-    
+
     /* The following line tells OpenGL that our program window needs to
      * be re-displayed, meaning everything that was being displayed on
      * the window before it got resized needs to be re-rendered.
@@ -467,7 +467,7 @@ void reshape(int width, int height)
 }
 
 /* 'display' function:
- * 
+ *
  * You will see down below in the 'main' function that whenever we create a
  * window in OpenGL, we have to specify a function for OpenGL to call whenever
  * it wants to render anything. We typically name this function 'display' or
@@ -492,7 +492,7 @@ void display(void)
      * rendering a new scene.
      */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+
     /* With the program window cleared, OpenGL is ready to render a new scene.
      * Of course, before we can render anything correctly, we need to make all
      * the appropriate camera and object transformations to our coordinate
@@ -527,9 +527,9 @@ void display(void)
      * a rotation 'R' followed by a scaling 'S' followed by the inverse camera
      * transform 'C', then the Modelview Matrix is modified in the following
      * order:
-     * 
+     *
      * M = I * T * R * S * C
-     * 
+     *
      * Then, when OpenGL applies the Modelview Matrix to a point 'p', we would
      * get the following multiplication:
      *
@@ -548,7 +548,7 @@ void display(void)
      * We start by specifying any camera rotations caused by the mouse. We do
      * so by using the 'glRotatef' function, which takes the following parameters
      * in the following order:
-     * 
+     *
      * - float angle: rotation angle in DEGREES
      * - float x: x-component of rotation axis
      * - float y: y-component of rotation axis
@@ -580,7 +580,7 @@ void display(void)
     glTranslatef(-cam_position[0], -cam_position[1], -cam_position[2]);
     /* ^ And that should be it for the camera transformations.
      */
-    
+
     /* Our next step is to set up all the lights in their specified positions.
      * Our helper function, 'set_lights' does this for us. See the function
      * for more details.
@@ -597,7 +597,7 @@ void display(void)
      * the code more organized.
      */
     draw_objects();
-    
+
     /* The following line of code has OpenGL do what is known as "double
      * buffering".
      *
@@ -612,7 +612,7 @@ void display(void)
      * To avoid the above situation, we need to tell OpenGL to display the
      * entire scene at once rather than rendering the scene one pixel at a
      * time. We do so by enabling "double buffering".
-     * 
+     *
      * Basically, double buffering is a technique where rendering is done using
      * two pixel grids of RGB values. One pixel grid is designated as the
      * "active buffer" while the other is designated as the "off-screen buffer".
@@ -622,11 +622,11 @@ void display(void)
      * new active buffer and gets displayed while the old active buffer becomes
      * the new off-screen buffer. This process allows scenes to be fully rendered
      * onto the screen at once, avoiding the flickering effect.
-     * 
+     *
      * We actually enable double buffering in the 'main' function with the line:
-     
+
        glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-       
+
      * ^ 'GLUT_DOUBLE' tells OpenGL to use double buffering. The other two
      * parameters, 'GLUT_RGB' and 'GLUT_DEPTH', tell OpenGL to initialize the
      * RGB pixel grids and the depth buffer respectively.
@@ -638,14 +638,14 @@ void display(void)
 }
 
 /* 'init_lights' function:
- * 
+ *
  * This function has OpenGL enable its built-in lights to represent our point
  * lights.
  *
  * OpenGL has 8 built-in lights in all, each one with its own unique, integer
  * ID value. When setting the properties of a light, we need to tell OpenGL
  * the ID value of the light we are modifying.
- * 
+ *
  * The first light's ID value is stored in 'GL_LIGHT0'. The second light's ID
  * value is stored in 'GL_LIGHT1'. And so on. The eighth and last light's ID
  * value is stored in 'GL_LIGHT7'.
@@ -660,24 +660,24 @@ void init_lights()
      * Phong reflection model or "lighting model" to every pixel it will render.
      */
     glEnable(GL_LIGHTING);
-    
+
     int num_lights = lights.size();
-    
+
     for(int i = 0; i < num_lights; ++i)
     {
         /* In this loop, we are going to associate each of our point lights
          * with one of OpenGL's built-in lights. The simplest way to do this
          * is to just let our first point light correspond to 'GL_LIGHT0', our
          * second point light correspond to 'GL_LIGHT1', and so on. i.e. let:
-         * 
+         *
          * 'lights[0]' have an ID value of 'GL_LIGHT0'
          * 'lights[1]' have an ID value of 'GL_LIGHT1'
          * etc...
          */
         int light_id = GL_LIGHT0 + i;
-        
+
         glEnable(light_id);
-        
+
         /* The following lines of code use 'glLightfv' to set the color of
          * the light. The parameters for 'glLightfv' are:
          *
@@ -686,7 +686,7 @@ void init_lights()
          *                  e.g. 'GL_AMBIENT' for the light's ambient component
          * - float* values: a set of values to set for the specified property
          *                  e.g. an array of RGB values for the light's color
-         * 
+         *
          * OpenGL actually lets us specify different colors for the ambient,
          * diffuse, and specular components of the light. However, since we
          * are used to only working with one overall light color, we will
@@ -695,7 +695,7 @@ void init_lights()
         glLightfv(light_id, GL_AMBIENT, lights[i].color);
         glLightfv(light_id, GL_DIFFUSE, lights[i].color);
         glLightfv(light_id, GL_SPECULAR, lights[i].color);
-        
+
         /* The following line of code sets the attenuation k constant of the
          * light. The difference between 'glLightf' and 'glLightfv' is that
          * 'glLightf' is used for when the parameter is only one value like
@@ -719,7 +719,7 @@ void init_lights()
  * effectively done in camera space. Hence, to ensure that we get the correct
  * lighting computations, we need to make sure that we position the lights
  * correctly in camera space.
- * 
+ *
  * Now, the 'glLightfv' function, when used to position a light, applies all
  * the current Modelview Matrix to the given light position. This means that
  * to correctly position lights in camera space, we should call the 'glLightfv'
@@ -730,11 +730,11 @@ void init_lights()
 void set_lights()
 {
     int num_lights = lights.size();
-    
+
     for(int i = 0; i < num_lights; ++i)
     {
         int light_id = GL_LIGHT0 + i;
-        
+
         glLightfv(light_id, GL_POSITION, lights[i].position);
     }
 }
@@ -746,7 +746,7 @@ void set_lights()
 void draw_objects()
 {
     int num_objects = objects.size();
-    
+
     for(int i = 0; i < num_objects; ++i)
     {
         /* The current Modelview Matrix is actually stored at the top of a
@@ -772,7 +772,7 @@ void draw_objects()
          */
         {
             int num_transform_sets = objects[i].transform_sets.size();
-            
+
             /* The loop is self-explanatory at this point. We simply
              * specify all the transformations that are to be applied
              * to this object.
@@ -790,7 +790,7 @@ void draw_objects()
                          objects[i].transform_sets[j].scaling[1],
                          objects[i].transform_sets[j].scaling[2]);
             }
-            
+
             /* The 'glMaterialfv' and 'glMaterialf' functions tell OpenGL
              * the material properties of the surface we want to render.
              * The parameters for 'glMaterialfv' are (in the following order):
@@ -811,11 +811,11 @@ void draw_objects()
             glMaterialfv(GL_FRONT, GL_DIFFUSE, objects[i].diffuse_reflect);
             glMaterialfv(GL_FRONT, GL_SPECULAR, objects[i].specular_reflect);
             glMaterialf(GL_FRONT, GL_SHININESS, objects[i].shininess);
-            
+
             /* The next few lines of code are how we tell OpenGL to render
              * geometry for us. First, let us look at the 'glVertexPointer'
              * function.
-             * 
+             *
              * 'glVertexPointer' tells OpenGL the specifications for our
              * "vertex array". As a recap of the comments from the 'Object'
              * struct, the "vertex array" stores all the faces of the surface
@@ -829,7 +829,7 @@ void draw_objects()
              *  face4vertex1, face4vertex2, face4vertex3, face4vertex4,
              *  face5vertex1, face5vertex2, face5vertex3, face5vertex4,
              *  face6vertex1, face6vertex2, face6vertex3, face6vertex4]
-             * 
+             *
              * Obviously to us, some of the vertices in the array are repeats.
              * However, the repeats cannot be avoided since OpenGL requires
              * this explicit specification of the faces.
@@ -872,13 +872,13 @@ void draw_objects()
              * - void* pointer_to_array: the pointer to the normal array
              */
             glNormalPointer(GL_FLOAT, 0, &objects[i].normal_buffer[0]);
-            
+
             int buffer_size = objects[i].vertex_buffer.size();
-            
+
             if(!wireframe_mode)
                 /* Finally, we tell OpenGL to render everything with the
                  * 'glDrawArrays' function. The parameters are:
-                 * 
+                 *
                  * - enum mode: in our case, we want to render triangles,
                  *              so we specify 'GL_TRIANGLES'. If we wanted
                  *              to render squares, then we would use
@@ -915,8 +915,8 @@ void draw_objects()
          */
         glPopMatrix();
     }
-    
-    
+
+
     /* The following code segment uses OpenGL's built-in sphere rendering
      * function to render the blue-ground that you are walking on when
      * you run the program. The blue-ground is just the surface of a big
@@ -931,10 +931,10 @@ void draw_objects()
 }
 
 /* 'mouse_pressed' function:
- * 
+ *
  * This function is meant to respond to mouse clicks and releases. The
  * parameters are:
- * 
+ *
  * - int button: the button on the mouse that got clicked or released,
  *               represented by an enum
  * - int state: either 'GLUT_DOWN' or 'GLUT_UP' for specifying whether the
@@ -955,7 +955,7 @@ void mouse_pressed(int button, int state, int x, int y)
          */
         mouse_x = x;
         mouse_y = y;
-        
+
         /* Since the mouse is being pressed down, we set our 'is_pressed"
          * boolean indicator to true.
          */
@@ -975,7 +975,7 @@ void mouse_pressed(int button, int state, int x, int y)
  *
  * This function is meant to respond to when the mouse is being moved. There
  * are just two parameters to this function:
- * 
+ *
  * - int x: the x screen coordinate of where the mouse was clicked or released
  * - int y: the y screen coordinate of where the mouse was clicked or released
  *
@@ -999,7 +999,7 @@ void mouse_moved(int x, int y)
          * dy equal to 'y' - 'mouse_y'. We need to compute the desired changes in
          * the horizontal (x) angle of the camera and the vertical (y) angle of
          * the camera.
-         * 
+         *
          * Let's start with the horizontal angle change. We first need to convert
          * the dx traveled in screen coordinates to a dx traveled in camera space.
          * The conversion is done using our 'mouse_scale_x' variable, which we
@@ -1008,14 +1008,14 @@ void mouse_moved(int x, int y)
          * want the camera angle to change. Higher values for 'x_view_step' cause
          * the camera to move more when we drag the mouse. We had set 'x_view_step'
          * to 90 at the top of this file (where we declared all our variables).
-         * 
+         *
          * We then add the horizontal change in camera angle to our 'x_view_angle'
          * variable, which keeps track of the cumulative horizontal change in our
          * camera angle. 'x_view_angle' is used in the camera rotations specified
          * in the 'display' function.
          */
         x_view_angle += ((float) x - (float) mouse_x) * mouse_scale_x * x_view_step;
-        
+
         /* We do basically the same process as above to compute the vertical change
          * in camera angle. The only real difference is that we want to keep the
          * camera angle changes realistic, and it is unrealistic for someone in
@@ -1028,7 +1028,7 @@ void mouse_moved(int x, int y)
                                   ((float) y - (float) mouse_y) * mouse_scale_y * y_view_step;
         y_view_angle = (temp_y_view_angle > 90 || temp_y_view_angle < -90) ?
                        y_view_angle : temp_y_view_angle;
-        
+
         /* We update our 'mouse_x' and 'mouse_y' variables so that if the user moves
          * the mouse again without releasing it, then the distance we compute on the
          * next call to the 'mouse_moved' function will be from this current mouse
@@ -1036,7 +1036,7 @@ void mouse_moved(int x, int y)
          */
         mouse_x = x;
         mouse_y = y;
-        
+
         /* Tell OpenGL that it needs to re-render our scene with the new camera
          * angles.
          */
@@ -1045,7 +1045,7 @@ void mouse_moved(int x, int y)
 }
 
 /* 'deg2rad' function:
- * 
+ *
  * Converts given angle in degrees to radians.
  */
 float deg2rad(float angle)
@@ -1054,7 +1054,7 @@ float deg2rad(float angle)
 }
 
 /* 'key_pressed' function:
- * 
+ *
  * This function is meant to respond to key pressed on the keyboard. The
  * parameters are:
  *
@@ -1100,9 +1100,9 @@ void key_pressed(unsigned char key, int x, int y)
          * moving forward, backward, etc is basically just shifting our view
          * of the scene.
          */
-        
+
         float x_view_rad = deg2rad(x_view_angle);
-        
+
         /* 'w' for step forward
          */
         if(key == 'w')
@@ -1149,57 +1149,57 @@ void create_lights()
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Light 1 Below
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Point_Light light1;
-    
+
     light1.position[0] = -0.8;
     light1.position[1] = 0;
     light1.position[2] = 1;
     light1.position[3] = 1;
-    
+
     light1.color[0] = 1;
     light1.color[1] = 1;
     light1.color[2] = 0;
     light1.attenuation_k = 0.2;
-    
+
     lights.push_back(light1);
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Light 2 Below
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Point_Light light2;
-    
+
     light2.position[0] = 0.15;
     light2.position[1] = 0.85;
     light2.position[2] = 0.7;
     light2.position[3] = 1;
-    
+
     light2.color[0] = 1;
     light2.color[1] = 0;
     light2.color[2] = 1;
-    
+
     light2.attenuation_k = 0.1;
-    
+
     lights.push_back(light2);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Light 3 Below
-    ///////////////////////////////////////////////////////////////////////////////////////////////    
-    
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     Point_Light light3;
-    
+
     light3.position[0] = 0.5;
     light3.position[1] = -0.5;
     light3.position[2] = 0.85;
     light3.position[3] = 1;
-    
+
     light3.color[0] = 0;
     light3.color[1] = 1;
     light3.color[2] = 1;
-    
+
     light3.attenuation_k = 0;
-    
+
     lights.push_back(light3);
 }
 
@@ -1219,313 +1219,313 @@ void create_lights()
 void create_cubes()
 {
     Object cube1;
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Reflectances
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     cube1.ambient_reflect[0] = 0.2;
     cube1.ambient_reflect[1] = 0.2;
     cube1.ambient_reflect[2] = 0.2;
-    
+
     cube1.diffuse_reflect[0] = 0.6;
     cube1.diffuse_reflect[1] = 0.6;
     cube1.diffuse_reflect[2] = 0.6;
-    
+
     cube1.specular_reflect[0] = 1;
     cube1.specular_reflect[1] = 1;
     cube1.specular_reflect[2] = 1;
-    
+
     cube1.shininess = 5.0;
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Points
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Triple point1;
     point1.x = -1;
     point1.y = -1;
     point1.z = 1;
-    
+
     Triple point2;
     point2.x = 1;
     point2.y = -1;
     point2.z = 1;
-    
+
     Triple point3;
     point3.x = 1;
     point3.y = 1;
     point3.z = 1;
-    
+
     Triple point4;
     point4.x = -1;
     point4.y = 1;
     point4.z = 1;
-    
+
     Triple point5;
     point5.x = -1;
     point5.y = -1;
     point5.z = -1;
-    
+
     Triple point6;
     point6.x = 1;
     point6.y = -1;
     point6.z = -1;
-    
+
     Triple point7;
     point7.x = 1;
     point7.y = 1;
     point7.z = -1;
-    
+
     Triple point8;
     point8.x = -1;
     point8.y = 1;
     point8.z = -1;
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Normals
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Triple normal1;
     normal1.x = 0;
     normal1.y = 0;
     normal1.z = 1;
-    
+
     Triple normal2;
     normal2.x = 0;
     normal2.y = 0;
     normal2.z = -1;
-    
+
     Triple normal3;
     normal3.x = 0;
     normal3.y = 1;
     normal3.z = 0;
-    
+
     Triple normal4;
     normal4.x = 0;
     normal4.y = -1;
     normal4.z = 0;
-    
+
     Triple normal5;
     normal5.x = 1;
     normal5.y = 0;
     normal5.z = 0;
-    
+
     Triple normal6;
     normal6.x = -1;
     normal6.y = 0;
     normal6.z = 0;
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Vertex and Normal Arrays
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /* We are rendering our cubes with triangles, so each cube has 12 (triangle) faces
      * in all.
      */
-    
+
     /* Face 1: */
-    
+
     cube1.vertex_buffer.push_back(point1);
     cube1.normal_buffer.push_back(normal1);
-    
+
     cube1.vertex_buffer.push_back(point2);
     cube1.normal_buffer.push_back(normal1);
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal1);
-    
+
     /* Face 2: */
-    
+
     cube1.vertex_buffer.push_back(point1);
     cube1.normal_buffer.push_back(normal1);
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal1);
-    
+
     cube1.vertex_buffer.push_back(point4);
     cube1.normal_buffer.push_back(normal1);
-    
+
     /* Face 3: */
-    
+
     cube1.vertex_buffer.push_back(point6);
     cube1.normal_buffer.push_back(normal2);
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal2);
-    
+
     cube1.vertex_buffer.push_back(point7);
     cube1.normal_buffer.push_back(normal2);
-    
+
     /* Face 4: */
-    
+
     cube1.vertex_buffer.push_back(point7);
     cube1.normal_buffer.push_back(normal2);
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal2);
-    
+
     cube1.vertex_buffer.push_back(point8);
     cube1.normal_buffer.push_back(normal2);
-    
+
     /* Face 5: */
-    
+
     cube1.vertex_buffer.push_back(point2);
     cube1.normal_buffer.push_back(normal5);
-    
+
     cube1.vertex_buffer.push_back(point6);
     cube1.normal_buffer.push_back(normal5);
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal5);
-    
+
     /* Face 6: */
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal5);
-    
+
     cube1.vertex_buffer.push_back(point6);
     cube1.normal_buffer.push_back(normal5);
-    
+
     cube1.vertex_buffer.push_back(point7);
     cube1.normal_buffer.push_back(normal5);
-    
+
     /* Face 7: */
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal6);
-    
+
     cube1.vertex_buffer.push_back(point4);
     cube1.normal_buffer.push_back(normal6);
-    
+
     cube1.vertex_buffer.push_back(point8);
     cube1.normal_buffer.push_back(normal6);
-    
+
     /* Face 8: */
-    
+
     cube1.vertex_buffer.push_back(point4);
     cube1.normal_buffer.push_back(normal6);
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal6);
-    
+
     cube1.vertex_buffer.push_back(point1);
     cube1.normal_buffer.push_back(normal6);
-    
+
     /* Face 9: */
-    
+
     cube1.vertex_buffer.push_back(point4);
     cube1.normal_buffer.push_back(normal3);
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal3);
-    
+
     cube1.vertex_buffer.push_back(point8);
     cube1.normal_buffer.push_back(normal3);
-    
+
     /* Face 10: */
-    
+
     cube1.vertex_buffer.push_back(point7);
     cube1.normal_buffer.push_back(normal3);
-    
+
     cube1.vertex_buffer.push_back(point8);
     cube1.normal_buffer.push_back(normal3);
-    
+
     cube1.vertex_buffer.push_back(point3);
     cube1.normal_buffer.push_back(normal3);
-    
+
     /* Face 11: */
-    
+
     cube1.vertex_buffer.push_back(point1);
     cube1.normal_buffer.push_back(normal4);
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal4);
-    
+
     cube1.vertex_buffer.push_back(point2);
     cube1.normal_buffer.push_back(normal4);
-    
+
     /* Face 12: */
-    
+
     cube1.vertex_buffer.push_back(point2);
     cube1.normal_buffer.push_back(normal4);
-    
+
     cube1.vertex_buffer.push_back(point5);
     cube1.normal_buffer.push_back(normal4);
-    
+
     cube1.vertex_buffer.push_back(point6);
     cube1.normal_buffer.push_back(normal4);
-    
-    
+
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Cube 2
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     /* We are just going to make them identical out of laziness... */
     Object cube2 = cube1;
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Transformations for Cube 1
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Transforms transforms1;
-    
+
     transforms1.translation[0] = -0.6;
     transforms1.translation[1] = 0;
     transforms1.translation[2] = 0;
-    
+
     transforms1.rotation[0] = 1;
     transforms1.rotation[1] = 1;
     transforms1.rotation[2] = 0;
     transforms1.rotation_angle = 60;
-    
+
     transforms1.scaling[0] = 0.5;
     transforms1.scaling[1] = 0.5;
     transforms1.scaling[2] = 0.5;
-    
+
     cube1.transform_sets.push_back(transforms1);
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Transformations for Cube 2
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     Transforms transforms2;
-    
+
     transforms2.translation[0] = 2.0;
     transforms2.translation[1] = 0;
     transforms2.translation[2] = 0;
-    
+
     transforms2.rotation[0] = 0;
     transforms2.rotation[1] = 1;
     transforms2.rotation[2] = 0;
     transforms2.rotation_angle = 135;
-    
+
     transforms2.scaling[0] = 1.5;
     transforms2.scaling[1] = 1.5;
     transforms2.scaling[2] = 1.5;
-    
+
     Transforms transforms3;
-    
+
     transforms3.translation[0] = 0;
     transforms3.translation[1] = 0;
     transforms3.translation[2] = 0;
-    
+
     transforms3.rotation[0] = 1;
     transforms3.rotation[1] = 0;
     transforms3.rotation[2] = 0;
     transforms3.rotation_angle = -45;
-    
+
     transforms3.scaling[0] = 0.5;
     transforms3.scaling[1] = 0.5;
     transforms3.scaling[2] = 0.5;
-    
+
     cube2.transform_sets.push_back(transforms2);
     cube2.transform_sets.push_back(transforms3);
-    
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Push to Objects
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
+
     objects.push_back(cube1);
     objects.push_back(cube2);
 }
@@ -1538,7 +1538,7 @@ int main(int argc, char* argv[])
 {
     int xres = 500;
     int yres = 500;
-    
+
     /* 'glutInit' intializes the GLUT (Graphics Library Utility Toolkit) library.
      * This is necessary, since a lot of the functions we used above and below
      * are from the GLUT library.
@@ -1563,7 +1563,7 @@ int main(int argc, char* argv[])
     /* The following line tells OpenGL to name the program window "Test".
      */
     glutCreateWindow("Test");
-    
+
     /* Call our 'init' function...
      */
     init();
