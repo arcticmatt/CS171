@@ -16,9 +16,10 @@ using namespace std;
  * Defines methods needed for parsing files
  ******************************************************************************/
 
-scene *parse_scene(ifstream &infile);
-vector<object *> parse_objects(ifstream &infile);
-object *parse_object(const char* filename);
+Scene *parse_scene(ifstream &infile);
+vector<Object> object_list_converter(vector<Object *> pointer_list);
+vector<Object *> parse_objects(ifstream &infile);
+Object *parse_object(const char* filename);
 MatrixXd compute_product(vector<MatrixXd> matrices);
 MatrixXd get_matrix(char determ, float x, float y, float z, float angle = 0);
 MatrixXd get_translation_matrix(float x, float y, float z);

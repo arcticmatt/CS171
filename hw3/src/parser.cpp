@@ -17,12 +17,13 @@ const string DATA_DIR = "../data/";
  * Given a scene description file of the format specified in HW1 Part 4,
  * reads through it and returns a pointer to a scene struct.
  */
-scene *parse_scene(ifstream &infile) {
-    scene *s = new scene();
+Scene *parse_scene(ifstream &infile) {
+    Scene *s = new Scene();
     string line;
     string determ;
     float x, y, z, r, g, b, angle, perspective_param, atten;
     char garbage;
+    vector<Object *> object_pointers;
 
     /*
      * Read file line by line until we get to the line that says "objects:".
@@ -30,7 +31,7 @@ scene *parse_scene(ifstream &infile) {
      */
     while (getline(infile, line)) {
         if (line.compare("objects:") == 0) {
-            s->objects = parse_objects(infile);
+            object_pointers = parse_objects(infile);
             break;
         } else {
             istringstream iss(line);
@@ -39,12 +40,13 @@ scene *parse_scene(ifstream &infile) {
                 continue;
             } else if (determ.compare("position") == 0) {
                 (iss >> x >> y >> z);
-                vertex position(x, y, z);
-                s->position = position;
+                Triple cam_position(x, y, z);
+                s->cam_position = cam_position;
             } else if (determ.compare("orientation") == 0) {
                 (iss >> x >> y >> z >> angle);
-                orientation orient(x, y, z, angle);
-                s->orient = orient;
+                Triple cam_orientation_axis(x, y, z);
+                s->cam_orientation_axis = cam_orientation_axis;
+                s->cam_orientation_angle = angle;
             } else if (determ.compare("near") == 0) {
                 (iss >> perspective_param);
                 s->near = perspective_param;
@@ -65,25 +67,44 @@ scene *parse_scene(ifstream &infile) {
                 s->bottom = perspective_param;
             } else if (determ.compare("light") == 0) {
                 (iss >> x >> y >> z >> garbage >> r >> g >> b >> garbage >> atten);
-                light *l = new light(x, y, z, r, g, b, atten);
+                // Set w component to 1
+                Point_Light l(x, y, z, 1, r, g, b, atten);
                 s->lights.push_back(l);
             }
             determ = "";
         }
     }
 
+    s->objects = object_list_converter(object_pointers);
+
+    // Free memory
+    for (Object *o : object_pointers)
+        delete(o);
+
     return s;
 }
 
 /*
- * Given an input file of the format specified in HW0 Part 3, reads through it and
- * returns a vector of pointers to object structs. Each object struct has a
+ * Convert list of pointers of Objects to list of Objects.
+ */
+vector<Object> object_list_converter(vector<Object *> pointer_list) {
+    vector<Object> object_list;
+    for (Object *o : pointer_list) {
+        Object obj(*o);
+        object_list.push_back(obj);
+    }
+    return object_list;
+}
+
+/*
+ * Given an input file of the format specified in HW0 Part 3, reads through it
+ * and returns a vector of pointers to object structs. Each object struct has a
  * vector of pointers to vertices, a vector of pointers to faces, and a vector
  * of transformation matrices. Each object struct also has a label.
  */
-vector<object *> parse_objects(ifstream &infile) {
-    unordered_map<string, object *> labels_map;
-    vector<object *> object_copies;
+vector<Object *> parse_objects(ifstream &infile) {
+    unordered_map<string, Object *> labels_map;
+    vector<Object *> object_copies;
 
     string line;
     string label, filename;
@@ -92,8 +113,8 @@ vector<object *> parse_objects(ifstream &infile) {
     float x, y, z, r, g, b;
     float shine;
     float angle = 0;
-    object *curr_object;
-    object *object_copy;
+    Object *curr_object;
+    Object *object_copy;
 
     /*
      * Read file by trying to read each type of line, and resetting if it doesn't
@@ -105,11 +126,8 @@ vector<object *> parse_objects(ifstream &infile) {
         if (iss >> determ >> x >> y >> z) {
             if (determ == 'r')
                 (iss >> angle);
-            MatrixXd matrix = get_matrix(determ, x, y, z, angle);
-            // Add transformation matrix to current object copy
-            object_copy->transformations.push_back(matrix);
-            if (determ != 't')
-                object_copy->normal_transformations.push_back(matrix);
+            Transforms transform(determ, x, y, z, angle);
+            object_copy->transform_sets.push_back(transform);
             continue;
         }
 
@@ -119,19 +137,16 @@ vector<object *> parse_objects(ifstream &infile) {
         (iss >> shading_determ);
         if (shading_determ.compare("ambient") == 0) {
             (iss >> r >> g >> b);
-            color amb(r, g, b);
-            object_copy->material.ambient = amb;
+            object_copy->set_ambient(r, g, b);
         } else if (shading_determ.compare("diffuse") == 0) {
             (iss >> r >> g >> b);
-            color diff(r, g, b);
-            object_copy->material.diffuse = diff;
+            object_copy->set_diffuse(r, g, b);
         } else if (shading_determ.compare("specular") == 0) {
             (iss >> r >> g >> b);
-            color spec(r, g, b);
-            object_copy->material.specular = spec;
+            object_copy->set_specular(r, g, b);
         } else if (shading_determ.compare("shininess") == 0) {
             (iss >> shine);
-            object_copy->material.shininess = shine;
+            object_copy->shininess = shine;
         }
 
         iss.str(line);
@@ -140,7 +155,7 @@ vector<object *> parse_objects(ifstream &infile) {
         if (iss >> label >> filename) {
             // For each filename, create the corresponding object and put it in
             // the unordered_map
-            object *o = parse_object(filename.c_str());
+            Object *o = parse_object(filename.c_str());
             o->label = label;
             labels_map[label] = o;
             continue;
@@ -153,16 +168,10 @@ vector<object *> parse_objects(ifstream &infile) {
             // Get current object from map we populated when reading first part
             // of file
             curr_object = labels_map[label];
-            object_copy = new object(*curr_object);
+            // TODO: make sure copying works
+            object_copy = new Object(*curr_object);
             object_copies.push_back(object_copy);
         }
-    }
-
-    // Free memory
-    for (unordered_map<string, object *>::iterator iter = labels_map.begin();
-            iter != labels_map.end(); ++iter) {
-        object *o = iter->second;
-        delete o;
     }
 
     return object_copies;
@@ -171,7 +180,7 @@ vector<object *> parse_objects(ifstream &infile) {
 /*
  * Creats an object from a file, and returns a pointer to it.
  */
-object *parse_object(const char *filename) {
+Object *parse_object(const char *filename) {
     string rel_filename = DATA_DIR;
     rel_filename.append(filename);
     ifstream infile(rel_filename);
@@ -179,13 +188,14 @@ object *parse_object(const char *filename) {
     string determ;
     float x, y, z;
     string mult_x, mult_y, mult_z;
-    vector<vertex *> vertices;
-    vector<surface_normal *> normals;
-    vector<face *> faces;
+    vector<Triple> vertex_buffer;
+    vector<Triple> normal_buffer;
+    vector<Triple> unique_vertices;
+    vector<Triple> unique_normals;
     // Vertices are 1-indexed, so push null for 0th element
-    vertices.push_back(NULL);
+    unique_vertices.push_back(Triple());
     // Normals are 1-indexed too, so push null for 0th element
-    normals.push_back(NULL);
+    unique_normals.push_back(Triple());
 
     // Go through file and read vertices and faces, create structs
     while (getline(infile, line)) {
@@ -194,12 +204,12 @@ object *parse_object(const char *filename) {
         // Create new vertex
         if (determ.compare("v") == 0) {
             (iss >> x >> y >> z);
-            vertex *v = new vertex(x, y, z);
-            vertices.push_back(v);
+            Triple v(x, y, z);
+            unique_vertices.push_back(v);
         } else if (determ.compare("vn") == 0) {
             (iss >> x >> y >> z);
-            surface_normal *n = new surface_normal(x, y, z);
-            normals.push_back(n);
+            Triple n(x, y, z);
+            unique_normals.push_back(n);
         } else {
             (iss >> mult_x >> mult_y >> mult_z);
             string v1_str = mult_x.substr(0, mult_x.find("//"));
@@ -214,12 +224,18 @@ object *parse_object(const char *filename) {
             string vn3_str = mult_z.substr(mult_z.find("//") + 2);
             int v3 = stoi(v3_str);
             int vn3 = stoi(vn3_str);
-            face *f = new face(v1, v2, v3, vn1, vn2, vn3);
-            faces.push_back(f);
+            // Push back vertices of the face
+            vertex_buffer.push_back(unique_vertices[v1]);
+            vertex_buffer.push_back(unique_vertices[v2]);
+            vertex_buffer.push_back(unique_vertices[v3]);
+            // Push back normals of the face
+            normal_buffer.push_back(unique_normals[vn1]);
+            normal_buffer.push_back(unique_normals[vn2]);
+            normal_buffer.push_back(unique_normals[vn3]);
         }
     }
 
-    object *o = new object(vertices, normals, faces);
+    Object *o = new Object(vertex_buffer, normal_buffer);
     return o;
 }
 
