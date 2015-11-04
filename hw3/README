@@ -1,0 +1,12 @@
+To run this program, navigate into the src directory and type make. This will
+generate the "shaded" executable. This can then be run with the following args:
+
+input file
+xres
+yres
+
+Most of the logic for this assignment is in rotation.cpp. Some of it (the arcball
+quaternion multiplication stuff) is in shaded.cpp. To see which methods I added
+to shaded.cpp, just look at shaded.h. The only other major changes to shaded.cpp
+from the OpenGL Demo were made in the mouse methods, in order to get the arcball
+stuff working.
