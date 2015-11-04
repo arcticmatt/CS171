@@ -208,6 +208,8 @@ struct Scene {
     float bottom;
     vector<Point_Light> lights;
     vector<Object> objects;
+    int xres;
+    int yres;
     Scene() {}
 
     /*

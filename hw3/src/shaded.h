@@ -5,6 +5,8 @@
 
 // Variables
 Scene *s;
+Eigen::Quaternionf current_rotation = Eigen::Quaternionf::Identity();
+Eigen::Quaternionf last_rotation = Eigen::Quaternionf::Identity();
 int mouse_x, mouse_y;
 float mouse_scale_x, mouse_scale_y;
 
@@ -27,5 +29,9 @@ void draw_objects();
 void mouse_pressed(int button, int state, int x, int y);
 void mouse_moved(int x, int y);
 void key_pressed(unsigned char key, int x, int y);
+
+/* Arcball */
+Eigen::Quaternionf get_current_rotation();
+float *get_rotation_matrix();
 
 #endif

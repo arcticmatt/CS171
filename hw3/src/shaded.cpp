@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cassert>
 #include "shaded.h"
+#include "rotation.h"
 
 /* The following 2 headers contain all the main functions, data structures, and
  * variables that allow for OpenGL development.
@@ -34,9 +35,9 @@ int main(int argc, char* argv[]) {
 
     /* Parse the scene description file */
     s = parse_scene(infile);
-    s->print();
+    s->xres = xres;
+    s->yres = yres;
     s->convert_to_degrees();
-    s->print();
 
     /* 'glutInit' intializes the GLUT (Graphics Library Utility Toolkit) library.
      * This is necessary, since a lot of the functions we used above and below
@@ -625,6 +626,10 @@ void draw_objects()
                          s->objects[i].transform_sets[j].scaling[2]);
             }
 
+            cout << "Multiply matrices" << endl;
+            float *m = get_rotation_matrix();
+            glMultMatrixf(m);
+
             /* The 'glMaterialfv' and 'glMaterialf' functions tell OpenGL
              * the material properties of the surface we want to render.
              * The parameters for 'glMaterialfv' are (in the following order):
@@ -800,6 +805,9 @@ void mouse_pressed(int button, int state, int x, int y)
      */
     else if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
     {
+        cout << "mouse released" << endl;
+        last_rotation = current_rotation * last_rotation;
+        current_rotation = Eigen::Quaternionf::Identity();
         /* Mouse is no longer being pressed, so set our indicator to false.
          */
         is_pressed = false;
@@ -824,60 +832,67 @@ void mouse_moved(int x, int y)
      */
     if(is_pressed)
     {
-        /* You see in the 'mouse_pressed' function that when the left-mouse button
-         * is first clicked down, we store the screen coordinates of where the
-         * mouse was pressed down in 'mouse_x' and 'mouse_y'. When we move the
-         * mouse, its screen coordinates change and are captured by the 'x' and
-         * 'y' parameters to the 'mouse_moved' function. We want to compute a change
-         * in our camera angle based on the distance that the mouse traveled.
-         *
-         * We have two distances traveled: a dx equal to 'x' - 'mouse_x' and a
-         * dy equal to 'y' - 'mouse_y'. We need to compute the desired changes in
-         * the horizontal (x) angle of the camera and the vertical (y) angle of
-         * the camera.
-         *
-         * Let's start with the horizontal angle change. We first need to convert
-         * the dx traveled in screen coordinates to a dx traveled in camera space.
-         * The conversion is done using our 'mouse_scale_x' variable, which we
-         * set in our 'reshape' function. We then multiply by our 'x_view_step'
-         * variable, which is an arbitrary value that determines how "fast" we
-         * want the camera angle to change. Higher values for 'x_view_step' cause
-         * the camera to move more when we drag the mouse. We had set 'x_view_step'
-         * to 90 at the top of this file (where we declared all our variables).
-         *
-         * We then add the horizontal change in camera angle to our 'x_view_angle'
-         * variable, which keeps track of the cumulative horizontal change in our
-         * camera angle. 'x_view_angle' is used in the camera rotations specified
-         * in the 'display' function.
-         */
-        x_view_angle += ((float) x - (float) mouse_x) * mouse_scale_x * x_view_step;
-
-        /* We do basically the same process as above to compute the vertical change
-         * in camera angle. The only real difference is that we want to keep the
-         * camera angle changes realistic, and it is unrealistic for someone in
-         * real life to be able to change their vertical "camera angle" more than
-         * ~90 degrees (they would have to detach their head and spin it vertically
-         * or something...). So we decide to restrict the cumulative vertical angle
-         * change between -90 and 90 degrees.
-         */
-        float temp_y_view_angle = y_view_angle +
-                                  ((float) y - (float) mouse_y) * mouse_scale_y * y_view_step;
-        y_view_angle = (temp_y_view_angle > 90 || temp_y_view_angle < -90) ?
-                       y_view_angle : temp_y_view_angle;
-
-        /* We update our 'mouse_x' and 'mouse_y' variables so that if the user moves
-         * the mouse again without releasing it, then the distance we compute on the
-         * next call to the 'mouse_moved' function will be from this current mouse
-         * position.
-         */
-        mouse_x = x;
-        mouse_y = y;
+        current_rotation = compute_rotation_quaternion(mouse_x, mouse_y,
+                x, y, s->xres, s->yres);
 
         /* Tell OpenGL that it needs to re-render our scene with the new camera
          * angles.
          */
         glutPostRedisplay();
     }
+}
+
+/*
+ * Gets the current rotation.
+ */
+Eigen::Quaternionf get_current_rotation() {
+    return current_rotation * last_rotation;
+}
+
+/*
+ * Gets the current rotation matrix.
+ *
+ * Returns a pointer to the consecutive values that are used as the elements
+ * of a rotation matrix. The elements are specified in column order. That is,
+ * if we have 16 elements and we are specifying a 4 x 4 matrix, then the first
+ * 4 elements represent the first column, and so on.
+ *
+ * The actual form of the rotation matrix is specified in HW3 notes. All we
+ * need to do is get the current rotation quaternion and translate it to
+ * matrix form.
+ */
+float *get_rotation_matrix() {
+    Eigen::Quaternionf q = get_current_rotation();
+    float qs = q.w();
+    float qx = q.x();
+    float qy = q.y();
+    float qz = q.z();
+
+    float *matrix = new float[16];
+
+    MatrixXf m(4, 4);
+    m <<
+        1 - 2 * qy * qy - 2 * qz * qz, 2 * (qx * qy - qz * qs),
+            2 * (qx * qz + qy * qs), 0,
+        2 * (qx * qy + qz * qs), 1 - 2 * qx * qx - 2 * qz * qz,
+            2 * (qy * qz - qx * qs), 0,
+        2 * (qx * qz - qy * qs), 2 * (qy * qz + qx * qs),
+            1 - 2 * qx * qx - 2 * qy * qy, 0,
+        0, 0, 0, 1;
+
+    cout << "rotation matrix: " << endl;
+    cout << m << endl;
+
+    // Manually copy eigen data into float array, otherwise we run into
+    // memory issues
+    int count = 0;
+    for (int col = 0; col < 4; col++) {
+        for (int row = 0; row < 4; row++) {
+            matrix[count] = m(row, col);
+            count++;
+        }
+    }
+    return matrix;
 }
 
 /* COPIED FROM DEMO
