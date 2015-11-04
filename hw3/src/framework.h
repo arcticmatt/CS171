@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 
@@ -208,6 +209,23 @@ struct Scene {
     vector<Point_Light> lights;
     vector<Object> objects;
     Scene() {}
+
+    /*
+     * Convert all angles associated with scene to degrees.
+     */
+    void convert_to_degrees() {
+        cam_orientation_angle *= (180 / M_PI);
+        for (int i = 0; i < (int) objects.size(); i++) {
+            Object o = objects[i];
+            for (int j = 0; j < (int) o.transform_sets.size(); j++) {
+                Transforms t = o.transform_sets[j];
+                t.rotation_angle *= (180 / M_PI);
+                o.transform_sets[j] = t;
+            }
+            objects[i] = o;
+        }
+    }
+
     void print() {
         cout << "position " << cam_position.x << " " << cam_position.y
             << " " << cam_position.z << endl;
@@ -246,7 +264,7 @@ struct Scene {
                     cout << "t " << t.translation[0] << " " << t.translation[1]
                         << " " << t.translation[2] << endl;
                 } else if (t.determ == 's') {
-                    cout << "t " << t.scaling[0] << " " << t.scaling[1]
+                    cout << "s " << t.scaling[0] << " " << t.scaling[1]
                         << " " << t.scaling[2] << endl;
                 }
             }

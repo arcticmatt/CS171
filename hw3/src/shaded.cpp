@@ -35,6 +35,8 @@ int main(int argc, char* argv[]) {
     /* Parse the scene description file */
     s = parse_scene(infile);
     s->print();
+    s->convert_to_degrees();
+    s->print();
 
     /* 'glutInit' intializes the GLUT (Graphics Library Utility Toolkit) library.
      * This is necessary, since a lot of the functions we used above and below
@@ -145,6 +147,23 @@ void init(void)
      */
     glEnable(GL_DEPTH_TEST);
 
+    /* The following line tells OpenGL to automatically normalize our normal
+     * vectors before it passes them into the normal arrays discussed below.
+     * This is required for correct lighting, but it also slows down our
+     * program. An alternative to this is to manually scale the normal vectors
+     * to correct for each scale operation we call. For instance, if we were
+     * to scale an object by 3 (via glScalef() discussed below), then
+     * OpenGL would scale the normals of the object by 1/3, as we would
+     * expect from the inverse normal transform. But since we need unit
+     * normals for lighting, we would either need to enable GL_NORMALIZE
+     * or manually scale our normals by 3 before passing them into the
+     * normal arrays; this is of course to counteract the 1/3 inverse
+     * scaling when OpenGL applies the normal transforms. Enabling GL_NORMALIZE
+     * is more convenient, but we sometimes don't use it if it slows down
+     * our program too much.
+     */
+    glEnable(GL_NORMALIZE);
+
     /* The following two lines tell OpenGL to enable its "vertex array" and
      * "normal array" functionality. More details on these arrays are given
      * in the comments on the 'Object' struct and the 'draw_objects' and
@@ -210,22 +229,14 @@ void init(void)
      */
     glMatrixMode(GL_MODELVIEW);
 
-    /* The following line tells OpenGL to automatically normalize our normal
-     * vectors before it passes them into the normal arrays discussed below.
-     * This is required for correct lighting, but it also slows down our
-     * program. An alternative to this is to manually scale the normal vectors
-     * to correct for each scale operation we call. For instance, if we were
-     * to scale an object by 3 (via glScalef() discussed below), then
-     * OpenGL would scale the normals of the object by 1/3, as we would
-     * expect from the inverse normal transform. But since we need unit
-     * normals for lighting, we would either need to enable GL_NORMALIZE
-     * or manually scale our normals by 3 before passing them into the
-     * normal arrays; this is of course to counteract the 1/3 inverse
-     * scaling when OpenGL applies the normal transforms. Enabling GL_NORMALIZE
-     * is more convenient, but we sometimes don't use it if it slows down
-     * our program too much.
+    /* The next line calls our function that tells OpenGL to initialize some
+     * lights to represent our Point Light structs. Further details will be
+     * given in the function itself.
+     *
+     * The reason we have this procedure as a separate function is to make
+     * the code more organized.
      */
-    glEnable(GL_NORMALIZE);
+    init_lights();
 }
 
 /* SLIGHTLY MODIFIED FROM DEMO
@@ -389,7 +400,7 @@ void display(void)
      * orientation angle about its orientation axis:
      */
     glRotatef(-s->cam_orientation_angle, s->cam_orientation_axis.x,
-            s->cam_orientation_axis.y, s->cam_orientation_axis.y);
+            s->cam_orientation_axis.y, s->cam_orientation_axis.z);
     /* We then specify the inverse translation of the camera by its position using
      * the 'glTranslatef' function, which takes the following parameters in the
      * following order:
@@ -458,6 +469,75 @@ void display(void)
     glutSwapBuffers();
 }
 
+/* 'init_lights' function:
+ *
+ * This function has OpenGL enable its built-in lights to represent our point
+ * lights.
+ *
+ * OpenGL has 8 built-in lights in all, each one with its own unique, integer
+ * ID value. When setting the properties of a light, we need to tell OpenGL
+ * the ID value of the light we are modifying.
+ *
+ * The first light's ID value is stored in 'GL_LIGHT0'. The second light's ID
+ * value is stored in 'GL_LIGHT1'. And so on. The eighth and last light's ID
+ * value is stored in 'GL_LIGHT7'.
+ *
+ * The properties of the lights are set using the 'glLightfv' and 'glLightf'
+ * functions as you will see below.
+ */
+void init_lights()
+{
+    /* The following line of code tells OpenGL to enable lighting calculations
+     * during its rendering process. This tells it to automatically apply the
+     * Phong reflection model or lighting model to every pixel it will render.
+     */
+    glEnable(GL_LIGHTING);
+
+    int num_lights = s->lights.size();
+
+    for(int i = 0; i < num_lights; ++i)
+    {
+        /* In this loop, we are going to associate each of our point lights
+         * with one of OpenGL's built-in lights. The simplest way to do this
+         * is to just let our first point light correspond to 'GL_LIGHT0', our
+         * second point light correspond to 'GL_LIGHT1', and so on. i.e. let:
+         *
+         * 'lights[0]' have an ID value of 'GL_LIGHT0'
+         * 'lights[1]' have an ID value of 'GL_LIGHT1'
+         * etc...
+         */
+        int light_id = GL_LIGHT0 + i;
+
+        glEnable(light_id);
+
+        /* The following lines of code use 'glLightfv' to set the color of
+         * the light. The parameters for 'glLightfv' are:
+         *
+         * - enum light_ID: an integer between 'GL_LIGHT0' and 'GL_LIGHT7'
+         * - enum property: this varies depending on what you are setting
+         *                  e.g. 'GL_AMBIENT' for the light's ambient component
+         * - float* values: a set of values to set for the specified property
+         *                  e.g. an array of RGB values for the light's color
+         *
+         * OpenGL actually lets us specify different colors for the ambient,
+         * diffuse, and specular components of the light. However, since we
+         * are used to only working with one overall light color, we will
+         * just set every component to the light color.
+         */
+        glLightfv(light_id, GL_AMBIENT, s->lights[i].color);
+        glLightfv(light_id, GL_DIFFUSE, s->lights[i].color);
+        glLightfv(light_id, GL_SPECULAR, s->lights[i].color);
+
+        /* The following line of code sets the attenuation k constant of the
+         * light. The difference between 'glLightf' and 'glLightfv' is that
+         * 'glLightf' is used for when the parameter is only one value like
+         * the attenuation constant while 'glLightfv' is used for when the
+         * parameter is a set of values like a color array. i.e. the third
+         * parameter of 'glLightf' is just a float instead of a float*.
+         */
+        glLightf(light_id, GL_QUADRATIC_ATTENUATION, s->lights[i].attenuation_k);
+    }
+}
 
 /* SLIGHTLY MODIFIED FROM DEMO
  * 'set_lights' function:
@@ -531,7 +611,7 @@ void draw_objects()
              * specify all the transformations that are to be applied
              * to this object.
              */
-            for(int j = 0; j < num_transform_sets; ++j)
+            for(int j = num_transform_sets - 1; j >= 0; --j)
             {
                 glTranslatef(s->objects[i].transform_sets[j].translation[0],
                              s->objects[i].transform_sets[j].translation[1],
