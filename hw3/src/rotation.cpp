@@ -38,9 +38,9 @@ Vector3f get_unit_rotation_axis(int x0, int y0, int x1, int y1, int xres,
         int yres) {
     // Convert screen to ndc
     float x0_ndc = screen_to_ndc(x0, xres);
-    float y0_ndc = -screen_to_ndc(y0, yres);
+    float y0_ndc = -screen_to_ndc(y0, yres); // OpenGL flips y coords
     float x1_ndc = screen_to_ndc(x1, xres);
-    float y1_ndc = -screen_to_ndc(y1, yres);
+    float y1_ndc = -screen_to_ndc(y1, yres); // OpenGL flips y coords
 
     // Compute z coords
     float z0_ndc = 1 - pow(x0_ndc, 2) - pow(y0_ndc, 2);
@@ -73,9 +73,9 @@ Vector3f get_unit_rotation_axis(int x0, int y0, int x1, int y1, int xres,
 float get_rotation_angle(int x0, int y0, int x1, int y1, int xres, int yres) {
     // Convert screen to ndc
     float x0_ndc = screen_to_ndc(x0, xres);
-    float y0_ndc = -screen_to_ndc(y0, yres);
+    float y0_ndc = -screen_to_ndc(y0, yres); // OpenGL flips y coords
     float x1_ndc = screen_to_ndc(x1, xres);
-    float y1_ndc = -screen_to_ndc(y1, yres);
+    float y1_ndc = -screen_to_ndc(y1, yres); // OpenGL flips y coords
 
     // Compute z coords
     float z0_ndc = 1 - pow(x0_ndc, 2) - pow(y0_ndc, 2);
