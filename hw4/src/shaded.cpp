@@ -319,11 +319,11 @@ void init(void)
      */
     init_lights();
 
-   cerr << "Loading textures" << endl;
-   if(!(skyTex = readpng("sky.png")))
-      exit(1);
-   if(!(leafTex = readpng("leaf.png")))
-      exit(1);
+    cerr << "Loading textures" << endl;
+    if(!(skyTex = readpng("sky.png")))
+        exit(1);
+    if(!(leafTex = readpng("leaf.png")))
+        exit(1);
 }
 
 /* SLIGHTLY MODIFIED FROM DEMO
