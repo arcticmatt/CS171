@@ -99,6 +99,14 @@ int main(int argc, char* argv[]) {
 }
 
 
+/*
+ * This method sets up the custom shaders. There are two types of shaders in
+ * GLSL, vertex shaders and fragment shaders. These shaders override parts of
+ * the default OpenGL pipeline. In this method, we set up these shaders.
+ *
+ * For this part of the assignment, we use these shaders for phong and gouraud
+ * shading.
+ */
 void readShaders() {
     string vertProgramSource, fragProgramSource;
 

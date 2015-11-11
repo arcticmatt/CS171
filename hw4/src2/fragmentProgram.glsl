@@ -1,12 +1,13 @@
 //fragment shader
 varying vec3 worldPos, camPos;
+varying vec3 lightVec;
 
 uniform sampler2D colorTex, normalTex;
+uniform vec3 tangent, binormal;
 
 void main()
 {
     vec4 texcoord0 = gl_TexCoord[0];
-    /*vec4 texcoord0 = vec4(0.5, 0.5, 0, 0);*/
     vec4 texColor = texture2D(colorTex, texcoord0.st);
     vec3 normal = texture2D(normalTex, texcoord0.st).rgb;
 
@@ -15,11 +16,11 @@ void main()
     vec3 posOfCam = -camPos;
     vec3 camDir = normalize(posOfCam);
 
-    float lightDist = distance(vec3(gl_LightSource[0].position), camPos);
+    float lightDist = length(lightVec);
     lightDist *= gl_LightSource[0].quadraticAttenuation;
     float atten_frac = 1.0 / (1.0 + lightDist);
 
-    vec3 lightDir = normalize(vec3(gl_LightSource[0].position) - camPos);
+    vec3 lightDir = normalize(lightVec);
 
     vec4 l_diff = vec4(0.0);
     float NdotL = max(dot(normalize(normal), normalize(lightDir)), 0.0);

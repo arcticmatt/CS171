@@ -1,0 +1,29 @@
+To run the code for part 1, navigate into the src directory and type make. This
+will generate the "glslRenderer" executable. This can be run with the following
+args:
+
+input file
+xres
+yres
+mode
+
+Most of the logic for this part is in the two shaders. The only other thing I
+really did was add readShaders into my shaded.cpp file.
+
+
+================================================================================
+
+
+To run the code for part 2, navigate into the src2 directory and type make. This
+will generate the "glslRenderer" executable. This can be run with the following
+args:
+
+color texture file
+normal map file
+
+Again, most of the logic for this part is in the two shaders. The main changes
+I made to shaded.cpp are as follows:
+
+- Add initGL() method that hardcodes lights (replace old init() method from hw3)
+- Add readShaders()
+- Add display() method that hardcodes square (replace old display() method from hw3)

@@ -1,9 +1,12 @@
 //fragment shader
-varying vec3 normal, worldPos, camPos;
+varying vec3 normal, camPos;
 uniform int numLights, is_phong;
 void main()
 {
     if (is_phong == 1) {
+        /*
+         * For phong shading, calculate the light per-pixel.
+         */
         vec4 diffuse_sum = vec4(0.0);
         vec4 specular_sum = vec4(0.0);
         vec3 posOfCam = -camPos;
@@ -36,6 +39,9 @@ void main()
             + diffuse_sum + specular_sum;
         gl_FragColor = color;
     } else {
+        /*
+         * For gouraud shading, just use the interpolated color.
+         */
         gl_FragColor = gl_Color;
     }
 }

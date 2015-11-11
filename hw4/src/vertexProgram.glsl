@@ -1,14 +1,19 @@
 //vertex shader
-varying vec3 normal, worldPos, camPos;
+varying vec3 normal, camPos;
 uniform int numLights, is_phong;
 void main()
 {
+    /*
+     * For phong shading, interpolate the camera position and the normal vector.
+     */
     normal = normalize(gl_NormalMatrix * gl_Normal);
-    worldPos = vec3(gl_Position);
     camPos = vec3(gl_ModelViewMatrix * gl_Vertex);
     gl_Position = ftransform();
 
     if (is_phong == 0) {
+        /*
+         * If we are not performing phong shading, interpolate the vertex colors.
+         */
         vec4 diffuse_sum = vec4(0.0);
         vec4 specular_sum = vec4(0.0);
         vec3 posOfCam = -camPos;

@@ -28,7 +28,7 @@ char *normal_name;
 GLenum shaderProgram;
 string vertProgFileName, fragProgFileName;
 GLenum colorTex, normalTex;
-GLint colorUniformPos, normalUniformPos;
+GLint colorUniformPos, normalUniformPos, tangentUniformPos, binormalUniformPos;
 GLint numLightsPos;
 GLint shadingToggle;
 
@@ -93,6 +93,13 @@ int main(int argc, char* argv[]) {
     glutMainLoop();
 }
 
+/*
+ * This method sets up the custom shaders. There are two types of shaders in
+ * GLSL, vertex shaders and fragment shaders. These shaders override parts of
+ * the default OpenGL pipeline. In this method, we set up these shaders.
+ *
+ * For this part of the assignment, we use these shaders for texturing.
+ */
 void readShaders() {
     string vertProgramSource, fragProgramSource;
 
@@ -173,6 +180,7 @@ void readShaders() {
     cerr << "Enabling program object" << endl;
     glUseProgram(shaderProgram);
 
+    // Set up uniform variables
     colorUniformPos = glGetUniformLocation(shaderProgram, "colorTex");
     normalUniformPos = glGetUniformLocation(shaderProgram, "normalTex");
 
@@ -185,6 +193,9 @@ void readShaders() {
     glUniform1i(normalUniformPos, 1);
 }
 
+/*
+ * Initialize OpenGL states. Also initialize the textures.
+ */
 void initGL() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -196,8 +207,7 @@ void initGL() {
     glTranslatef(0, -1, 0);
 
 
-
-    GLfloat pos[] = {7.0, 2.0, 3.0, 1.0};
+    GLfloat pos[] = {0.0, 0.0, 0.0, 0.0};
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,1);
@@ -216,6 +226,10 @@ void initGL() {
         exit(1);
 }
 
+/*
+ * This display method just displays a hardcoded square (which has hardcoded
+ * normals).
+ */
 void display() {
     glPushMatrix();
 
@@ -224,19 +238,37 @@ void display() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaderProgram);
+
+
+    Vector3f tangent(1.0, 0.0, 0.0);
+    Vector3f binormal(0.0, 1.0, 0.0);
+    tangent = get_current_rotation() * tangent;
+    binormal = get_current_rotation() * binormal;
+
+    tangentUniformPos = glGetUniformLocation(shaderProgram, "tangent");
+    glUniform3f(tangentUniformPos, tangent(0), tangent(1), tangent(2));
+
+    binormalUniformPos = glGetUniformLocation(shaderProgram, "binormal");
+    glUniform3f(binormalUniformPos, binormal(0), binormal(1), binormal(2));
+
+
     glColor3f(0, 1, 0);
 
     glBegin(GL_POLYGON);
     glTexCoord2f(0, 0);
+    glNormal3f(0, 0, 1);
     glVertex3f(-5.0, -5.0, 0.0);
 
     glTexCoord2f(1, 0);
+    glNormal3f(0, 0, 1);
     glVertex3f(5.0, -5.0, 0.0);
 
     glTexCoord2f(1, 1);
+    glNormal3f(0, 0, 1);
     glVertex3f(5.0, 5.0, 0.0);
 
     glTexCoord2f(0, 1);
+    glNormal3f(0, 0, 1);
     glVertex3f(-5.0, 5.0, 0.0);
     glEnd();
 
@@ -245,6 +277,9 @@ void display() {
     glutSwapBuffers();
 }
 
+/*
+ * Reshape method from demo.
+ */
 void reshape(int x, int y) {
     const double aspect = x / (double)y;
 
