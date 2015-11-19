@@ -8,7 +8,7 @@ using namespace Eigen;
 
 struct Vec3f
 {
-	double x, y, z;
+	float x, y, z;
     Vec3f(float x, float y, float z) : x(x), y(y), z(z) {}
     Vec3f() {}
 };

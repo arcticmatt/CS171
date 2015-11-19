@@ -202,6 +202,18 @@ struct Scene {
     Scene() {}
 
     /*
+     * Index HEVs.
+     */
+    void index_hevs() {
+        for (int i = 0; i < object_hevs.size(); i++) {
+            // object_hevs[i] = vector<HEV *> *
+            for (int j = 1; j < object_hevs[i]->size(); j++) {
+                object_hevs[i]->at(j)->index = j; // assign each vertex an index
+            }
+        }
+    }
+
+    /*
      * Get mesh data objects for each object.
      */
     void populate_meshes() {
@@ -228,7 +240,9 @@ struct Scene {
     void populate_object_normals() {
         for (int i = 0; i < (int) objects.size(); i++) {
             vector<HEV*> *hevs = object_hevs[i];
-            cout << "hevs size = " << hevs->size();
+            cout << "hevs size = " << hevs->size() << endl;;
+            // Unique normals should be 1-indexed
+            objects[i].unique_normals.push_back(Vec3f());
             for (HEV *vertex : *hevs) {
                 if (vertex == NULL)
                     continue;
@@ -240,7 +254,10 @@ struct Scene {
 
         for (int i = 0; i < (int) objects.size(); i++) {
             for (Face f : objects[i].faces) {
+                // Use same indices as vertices.
+                //cout << "indices = " << f.idx1 << " " << f.idx2 << " " << f.idx3 << endl;
                 Vec3f n1 = objects[i].unique_normals[f.idx1];
+                //cout << "n1 = " << n1.x << " " << n1.y << " " << n1.z << endl;
                 Vec3f n2 = objects[i].unique_normals[f.idx2];
                 Vec3f n3 = objects[i].unique_normals[f.idx3];
                 objects[i].normal_buffer.push_back(n1);
@@ -250,6 +267,9 @@ struct Scene {
         }
     }
 
+    /*
+     * Given an HEV, calculate it's normal.
+     */
     Vec3f calc_vertex_normal(HEV *vertex) {
         Vec3f normal;
         normal.x = 0;
@@ -367,6 +387,9 @@ struct Scene {
             }
         }
 
+        cout << "faces size = " << objects[0].faces.size() << endl;
+        cout << "unique_vertices size = " << objects[0].unique_vertices.size() << endl;
+        cout << "unique_normals size = " << objects[0].unique_normals.size() << endl;
         cout << "vertex_buffer size = " << objects[0].vertex_buffer.size() << endl;
         cout << "normal_buffer size = " << objects[0].normal_buffer.size() << endl;
     }

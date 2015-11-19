@@ -191,6 +191,7 @@ Object *parse_object(const char *filename) {
     string line;
     string determ;
     float x, y, z;
+    int idx1, idx2, idx3;
     string mult_x, mult_y, mult_z;
     vector<Vertex> vertex_buffer;
     vector<Vertex> unique_vertices;
@@ -212,14 +213,14 @@ Object *parse_object(const char *filename) {
             unique_vertices.push_back(*v);
             unique_vertex_pointers.push_back(v);
         } else if (determ.compare("f") == 0) {
-            (iss >> x >> y >> z);
+            (iss >> idx1 >> idx2 >> idx3);
             // Push back vertices of the face, and pointers to these vertices
-            vertex_buffer.push_back(unique_vertices[(int) x]);
-            vertex_buffer.push_back(unique_vertices[(int) y]);
-            vertex_buffer.push_back(unique_vertices[(int) z]);
+            vertex_buffer.push_back(unique_vertices[idx1]);
+            vertex_buffer.push_back(unique_vertices[idx2]);
+            vertex_buffer.push_back(unique_vertices[idx3]);
 
             // Push back the face, and a pointer to the face
-            Face *f = new Face(x, y, z);
+            Face *f = new Face(idx1, idx2, idx3);
             faces.push_back(*f);
 
             face_pointers.push_back(f);
@@ -227,6 +228,7 @@ Object *parse_object(const char *filename) {
     }
 
     Object *o = new Object();
+    o->unique_vertices = unique_vertices;
     o->vertex_buffer = vertex_buffer;
     o->faces = faces;
     o->unique_vertex_pointers = unique_vertex_pointers;
