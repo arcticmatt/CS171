@@ -33,20 +33,28 @@ int main(int argc, char* argv[]) {
     ifstream infile(argv[1]);
     int xres = atoi(argv[2]);
     int yres = atoi(argv[3]);
-    int h = atoi(argv[4]);
+    float h = atof(argv[4]);
 
     /* Parse the scene description file */
     s = parse_scene(infile);
+    s->time_step = h;
     s->xres = xres;
     s->yres = yres;
     s->convert_to_degrees();
 
+    // This is all that is needed for part 1 (calculation of normal vectors).
     s->populate_meshes();
     cout << "Meshes populated" << endl;
     s->populate_object_normals();
     cout << "Normals populated" << endl;
 
     s->print();
+
+    // For parts 2 - 4, update the vertices and recompute the normals.
+    s->update_vertices();
+    s->populate_meshes();
+    s->populate_object_normals();
+
 
     /* 'glutInit' intializes the GLUT (Graphics Library Utility Toolkit) library.
      * This is necessary, since a lot of the functions we used above and below
@@ -635,7 +643,6 @@ void draw_objects()
                          s->objects[i].transform_sets[j].scaling[2]);
             }
 
-            cout << "Multiply matrices" << endl;
             float *m = get_rotation_matrix();
             glMultMatrixf(m);
 
@@ -814,7 +821,6 @@ void mouse_pressed(int button, int state, int x, int y)
      */
     else if(button == GLUT_LEFT_BUTTON && state == GLUT_UP)
     {
-        cout << "mouse released" << endl;
         last_rotation = current_rotation * last_rotation;
         current_rotation = Eigen::Quaternionf::Identity();
         /* Mouse is no longer being pressed, so set our indicator to false.
@@ -888,9 +894,6 @@ float *get_rotation_matrix() {
         2 * (qx * qz - qy * qs), 2 * (qy * qz + qx * qs),
             1 - 2 * qx * qx - 2 * qy * qy, 0,
         0, 0, 0, 1;
-
-    cout << "rotation matrix: " << endl;
-    cout << m << endl;
 
     // Manually copy eigen data into float array, otherwise we run into
     // memory issues

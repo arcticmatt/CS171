@@ -1,0 +1,29 @@
+To run the code, navigate into the src directory and type make. This will generate
+the "shaded" executable. This can be run with the following args:
+
+input file
+xres
+yres
+h (time step)
+
+The input files are located in the data directory.
+
+Most of the logic for this assignment is contained in the framework.h file. More
+specifically, most of the logic is written into new functions of the Scene struct.
+I use functions of the Scene to compute the normal vectors, compute the matrix
+operator, solve for the new vertices, etc. Basically, just look at the Scene
+struct for the code.
+
+================================================================================
+
+Here is how I built F. Let c = cot(alpha) + cot(beta). We can rewrite the sum
+in the discrete Laplacian as follows:
+
+(sum c_j x_j) - (x_i sum c_j)
+
+So then, for a given row in our F matrix, each column will have the value of
+c_j, unless it is on the diagonal; then it will have the value of -(sum c_j).
+This is, of course, ignoring, the h / 2A and identity matrix. But to add this
+in, we just multiply the F matrix we just described by h / 2A (we have a different
+A per row, because A is the sum of the faces surrounding a vertex) and then
+subtract the resulting matrix from the identity matrix.

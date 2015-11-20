@@ -5,11 +5,17 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cassert>
 #include <cmath>
 #include "structs.h"
 #include "halfedge.h"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 using namespace std;
+using namespace Eigen;
+
+const float NEAR_ZERO = 0.0001;
 
 /*******************************************************************************
  * Defines all the structs
@@ -199,24 +205,283 @@ struct Scene {
     vector<vector<HEF *>*> object_hefs;
     int xres;
     int yres;
+    float time_step;
     Scene() {}
 
     /*
      * Index HEVs.
      */
-    void index_hevs() {
-        for (int i = 0; i < object_hevs.size(); i++) {
-            // object_hevs[i] = vector<HEV *> *
-            for (int j = 1; j < object_hevs[i]->size(); j++) {
-                object_hevs[i]->at(j)->index = j; // assign each vertex an index
+    void index_vertices(vector<HEV *> *vertices) {
+        for (int i = 1; i < vertices->size(); i++) // start at 1 because obj files are 1-indexed
+            vertices->at(i)->index = i;
+    }
+
+    /*
+     * Update the vertex buffers of each object according to the time step of
+     * the scene. The vertex buffers are used for OpenGL drawing.
+     *
+     * Also update unique vertices so that the mesh can be recalculated.
+     */
+    void update_vertices() {
+        for (int i = 0; i < objects.size(); i++) {
+            // Clear current vertex buffer
+            vector<Vertex> old_buffer = objects[i].vertex_buffer;
+            objects[i].vertex_buffer.clear();
+
+            // Calculate new vertices using implicit fairing.
+            VectorXf xh_vec = solve_xh(object_hevs[i], objects[i].unique_vertices);
+            VectorXf yh_vec = solve_yh(object_hevs[i], objects[i].unique_vertices);
+            VectorXf zh_vec = solve_zh(object_hevs[i], objects[i].unique_vertices);
+
+            // Update vertex buffer based on recalculated vertices.
+            for (int j = 0; j < objects[i].faces.size(); j++) {
+                Face f = objects[i].faces[j];
+                // Make sure to adjust the indices to be 0-indexed for the time
+                // step vectors
+                Vertex new_vertex1(xh_vec(f.idx1 - 1), yh_vec(f.idx1 - 1), zh_vec(f.idx1 - 1));
+                Vertex new_vertex2(xh_vec(f.idx2 - 1), yh_vec(f.idx2 - 1), zh_vec(f.idx2 - 1));
+                Vertex new_vertex3(xh_vec(f.idx3 - 1), yh_vec(f.idx3 - 1), zh_vec(f.idx3 - 1));
+
+                Vertex old_vertex1 = old_buffer[j * 3];
+                objects[i].vertex_buffer.push_back(new_vertex1);
+                objects[i].vertex_buffer.push_back(new_vertex2);
+                objects[i].vertex_buffer.push_back(new_vertex3);
+            }
+
+            // Update unique vertices
+            objects[i].unique_vertices.clear();
+            objects[i].unique_vertex_pointers.clear();
+
+            objects[i].unique_vertices.push_back(Vertex());
+            objects[i].unique_vertex_pointers.push_back(NULL);
+            for (int j = 0; j < xh_vec.size(); j++) {
+                Vertex *new_unique_vertex = new Vertex(xh_vec(j), yh_vec(j), zh_vec(j));
+                objects[i].unique_vertices.push_back(*new_unique_vertex);
+                objects[i].unique_vertex_pointers.push_back(new_unique_vertex);
             }
         }
+    }
+
+    // Get new z values based on the Scene's time step (smoothed values)
+    Eigen::VectorXf solve_zh(vector<HEV *> *vertices, vector<Vertex> unique_vertices) {
+        // Get our matrix representation of F
+        Eigen::SparseMatrix<float> F = build_F_operator(vertices);
+
+        // Initialize Eigen's sparse solver
+        Eigen::SparseLU<Eigen::SparseMatrix<float>, Eigen::COLAMDOrdering<int>> solver;
+
+        // The following two lines essentially tailor our solver to our operator F
+        solver.analyzePattern(F);
+        solver.factorize(F);
+
+        int num_vertices = vertices->size() - 1;
+
+        // Initialize our vector representation of x0's
+        Eigen::VectorXf z0_vector(num_vertices);
+        for (int i = 1; i < vertices->size(); i++) {
+            z0_vector(i - 1) = unique_vertices[i].z;
+        }
+
+        // Have Eigen solve for our z_h vector
+        Eigen::VectorXf zh_vector(num_vertices);
+        zh_vector = solver.solve(z0_vector);
+
+        return zh_vector;
+    }
+
+    // Get new y values based on the Scene's time step (smoothed values)
+    Eigen::VectorXf solve_yh(vector<HEV *> *vertices, vector<Vertex> unique_vertices) {
+        // Get our matrix representation of F
+        Eigen::SparseMatrix<float> F = build_F_operator(vertices);
+
+        // Initialize Eigen's sparse solver
+        Eigen::SparseLU<Eigen::SparseMatrix<float>, Eigen::COLAMDOrdering<int>> solver;
+
+        // The following two lines essentially tailor our solver to our operator F
+        solver.analyzePattern(F);
+        solver.factorize(F);
+
+        int num_vertices = vertices->size() - 1;
+
+        // Initialize our vector representation of x0's
+        Eigen::VectorXf y0_vector(num_vertices);
+        for (int i = 1; i < vertices->size(); i++) {
+            y0_vector(i - 1) = unique_vertices[i].y;
+        }
+
+        // Have Eigen solve for our x_h vector
+        Eigen::VectorXf yh_vector(num_vertices);
+        yh_vector = solver.solve(y0_vector);
+
+        return yh_vector;
+    }
+
+    // Get new x values based on the Scene's time step (smoothed values)
+    Eigen::VectorXf solve_xh(vector<HEV *> *vertices, vector<Vertex> unique_vertices) {
+        // Get our matrix representation of F
+        Eigen::SparseMatrix<float> F = build_F_operator(vertices);
+
+        // Initialize Eigen's sparse solver
+        Eigen::SparseLU<Eigen::SparseMatrix<float>, Eigen::COLAMDOrdering<int>> solver;
+
+        // The following two lines essentially tailor our solver to our operator F
+        solver.analyzePattern(F);
+        solver.factorize(F);
+
+        int num_vertices = vertices->size() - 1;
+
+        // Initialize our vector representation of x0's
+        Eigen::VectorXf x0_vector(num_vertices);
+        for (int i = 1; i < vertices->size(); i++) {
+            x0_vector(i - 1) = unique_vertices[i].x;
+        }
+
+        // Have Eigen solve for our x_h vector
+        Eigen::VectorXf xh_vector(num_vertices);
+        xh_vector = solver.solve(x0_vector);
+
+        return xh_vector;
+    }
+
+    /*
+     * Function to construct our F operator in matrix form.
+     * The F operator is used for implicit fairing (smoothing of the surface of
+     * a mesh).
+     */
+    Eigen::SparseMatrix<float> build_F_operator(vector<HEV *> *vertices) {
+        index_vertices(vertices); // assign each vertex an index
+
+        // recall that due to 1-indexing of obj files, index 0 of our list
+        // doesn't actually contain a vertex
+        int num_vertices = vertices->size() - 1;
+
+        // initialize a sparse matrix to represent our F operator
+        Eigen::SparseMatrix<float> F(num_vertices, num_vertices);
+
+        // reserve room for 7 non-zeros per row of F
+        F.reserve(Eigen::VectorXi::Constant( num_vertices, 7 ) );
+
+        for( int i = 1; i < vertices->size(); ++i )
+        {
+            // Sum all the incident face areas
+            float face_area_sum = 0;
+
+            // For the ith column in the row, sum all cot_sums
+            float cot_sum_sum = 0;
+
+            // Keep track of incident cols so we can modify cell values by
+            // face_area_sum in outer loop
+            vector<int> incident_cols;
+            vector<float> incident_col_vals;
+
+            HE *he = vertices->at(i)->out;
+
+            do // iterate over all vertices adjacent to v_i
+            {
+                /*** Compute the face area ***/
+                HEV *hev1 = he->vertex;
+                HEV *hev2 = he->next->vertex;
+                HEV *hev3 = he->next->next->vertex;
+
+                float face_area = get_face_area(hev1, hev2, hev3);
+                face_area_sum += face_area;
+
+                int j = he->next->vertex->index; // get index of adjacent vertex to v_i
+                assert(j != i);
+                incident_cols.push_back(j);
+
+                HEV *alpha_vertex = he->next->next->vertex;
+                HEV *beta_vertex = he->flip->next->next->vertex;
+
+                Vector3f alpha_vec1 = get_vector(alpha_vertex, hev1);
+                Vector3f alpha_vec2 = get_vector(alpha_vertex, hev2);
+                Vector3f beta_vec1 = get_vector(beta_vertex, hev1);
+                Vector3f beta_vec2 = get_vector(beta_vertex, hev2);
+
+                // cot = cos / sin
+                // cos = A dot B / |A| |B|
+                // sin = A cross B / |A| |B| n
+                // cot = A dot B / magnitude(A cross B)
+                // call function to compute edge length
+                float alpha_cot = alpha_vec1.dot(alpha_vec2) /
+                    (alpha_vec1.cross(alpha_vec2)).norm();
+                float beta_cot = beta_vec1.dot(beta_vec2) /
+                    (beta_vec1.cross(beta_vec2)).norm();
+                float cot_sum = alpha_cot + beta_cot;
+
+                cot_sum_sum += cot_sum;
+                float cell_val = cot_sum;
+
+                // Keep track of cell_val to be used later
+                incident_col_vals.push_back(cell_val);
+
+                he = he->flip->next;
+            }
+            while(he != vertices->at(i)->out);
+
+            // Fill the (i - 1, i - 1) cell and...
+            // modify other columns by (time_step / (2.0 * face_area_sum))
+            // IF the face_area_sum is large enough
+            if (face_area_sum > NEAR_ZERO) {
+                // Fill in ith column in the row. For the diagonal, add 1, because
+                // our equation is I - h delta. That is, we subtract our matrix
+                // from the identity matrix. However, we separated the x_i/y_i/z_i
+                // component into a separate sum, which is negative; that is why we
+                // add instead of subtract from 1 here. See the README for more details.
+                F.insert(i - 1, i - 1) = 1.0 + (time_step / (2.0 * face_area_sum)) * cot_sum_sum;
+
+                for (int j = 0; j < incident_cols.size(); j++) {
+                    int col_index = incident_cols[j];
+                    float cell_val = incident_col_vals[j];
+                    // Negate the value because we subtract from the identity matrix.
+                    float adj_cell_val = -(time_step / (2.0 * face_area_sum)) * cell_val;
+                    F.insert(i - 1, col_index - 1) = adj_cell_val;
+                }
+            }
+        }
+
+        // optional; tells Eigen to more efficiently store our sparse matrix
+        F.makeCompressed();
+        cout << "returning F" << endl;
+        return F;
+    }
+
+    /*
+     * Get vector from a to b.
+     */
+    Vector3f get_vector(HEV *a, HEV *b) {
+        Vector3f vec(b->x - a->x, b->y - a->y, b->z - a->z);
+        return vec;
+    }
+
+    /*
+     * Given three vertices, get face area.
+     */
+    float get_face_area(HEV *hev1, HEV *hev2, HEV *hev3) {
+        Vector3f v1 = hevToVector(hev1);
+        Vector3f v2 = hevToVector(hev2);
+        Vector3f v3 = hevToVector(hev3);
+
+        // compute the normal of the plane of the face.
+        // normal = cross prod of (v2 - v1) x (v3 - v1)
+        Vector3f v2_v1 = v2 - v1;
+        Vector3f v3_v1 = v3 - v1;
+        Vector3f face_normal = v2_v1.cross(v3_v1);
+        // compute the area of the triangular face
+        // area = 1/2 * |face_normal|
+        float face_area = 0.5 * face_normal.norm();
+
+        return face_area;
     }
 
     /*
      * Get mesh data objects for each object.
      */
     void populate_meshes() {
+        // Make sure to clear existing meshes.
+        object_hevs.clear();
+        object_hefs.clear();
+
         for (Object o : objects) {
             Mesh_Data *mesh_data = new Mesh_Data;
             mesh_data->vertices = &o.unique_vertex_pointers;
@@ -225,9 +490,7 @@ struct Scene {
             vector<HEV*> *hevs = new vector<HEV*>();
             vector<HEF*> *hefs = new vector<HEF*>();
 
-            cout << "Before building HE" << endl;
             build_HE(mesh_data, hevs, hefs);
-            cout << "After building HE" << endl;
             meshes.push_back(mesh_data);
             object_hevs.push_back(hevs);
             object_hefs.push_back(hefs);
@@ -239,25 +502,27 @@ struct Scene {
      */
     void populate_object_normals() {
         for (int i = 0; i < (int) objects.size(); i++) {
+            // Clear unique normals before populating
+            objects[i].unique_normals.clear();
+
             vector<HEV*> *hevs = object_hevs[i];
-            cout << "hevs size = " << hevs->size() << endl;;
             // Unique normals should be 1-indexed
             objects[i].unique_normals.push_back(Vec3f());
             for (HEV *vertex : *hevs) {
                 if (vertex == NULL)
                     continue;
                 Vec3f normal = calc_vertex_normal(vertex);
-                //cout << "n " << normal.x << " " << normal.y << " " << normal.z << endl;
                 objects[i].unique_normals.push_back(normal);
             }
         }
 
         for (int i = 0; i < (int) objects.size(); i++) {
+            // Clear normal buffer before populating
+            objects[i].normal_buffer.clear();
+
             for (Face f : objects[i].faces) {
                 // Use same indices as vertices.
-                //cout << "indices = " << f.idx1 << " " << f.idx2 << " " << f.idx3 << endl;
                 Vec3f n1 = objects[i].unique_normals[f.idx1];
-                //cout << "n1 = " << n1.x << " " << n1.y << " " << n1.z << endl;
                 Vec3f n2 = objects[i].unique_normals[f.idx2];
                 Vec3f n3 = objects[i].unique_normals[f.idx3];
                 objects[i].normal_buffer.push_back(n1);
@@ -268,7 +533,7 @@ struct Scene {
     }
 
     /*
-     * Given an HEV, calculate it's normal.
+     * Given an HEV, calculate its normal.
      */
     Vec3f calc_vertex_normal(HEV *vertex) {
         Vec3f normal;
@@ -280,11 +545,9 @@ struct Scene {
 
         do
         {
-            HEF *hef = he->face;
-
-            HEV *hev1 = hef->edge->vertex;
-            HEV *hev2 = hef->edge->next->vertex;
-            HEV *hev3 = hef->edge->next->next->vertex;
+            HEV *hev1 = he->vertex;
+            HEV *hev2 = he->next->vertex;
+            HEV *hev3 = he->next->next->vertex;
 
             Vector3f v1 = hevToVector(hev1);
             Vector3f v2 = hevToVector(hev2);
@@ -296,8 +559,8 @@ struct Scene {
             Vector3f v3_v1 = v3 - v1;
             Vector3f face_normal = v2_v1.cross(v3_v1);
             // compute the area of the triangular face
-            // area = 1/2 * |face_normal| TODO check this
-            double face_area = 0.5 * face_normal.norm();
+            // area = 1/2 * |face_normal|
+            float face_area = 0.5 * face_normal.norm();
 
             // accummulate onto our normal vector
             normal.x += face_normal(0) * face_area;
@@ -344,6 +607,7 @@ struct Scene {
     }
 
     void print() {
+        cout << "time_step " << time_step << endl;
         cout << "position " << cam_position.x << " " << cam_position.y
             << " " << cam_position.z << endl;
         cout << "orientation " << cam_orientation_axis.x << " "

@@ -10,9 +10,6 @@ Eigen::Quaternionf compute_rotation_quaternion(int x0, int y0, int x1, int y1,
     float rotation_angle = get_rotation_angle(x0, y0, x1, y1, xres, yres);
     Vector3f unit_rotation_axis = get_unit_rotation_axis(x0, y0, x1, y1, xres,
             yres);
-    cout << "rotation angle = " << rotation_angle << endl;
-    cout << "rotation unit axis: " << endl;
-    cout << unit_rotation_axis << endl;
 
     float quaternion_real = cos(rotation_angle / 2.0);
     float imaginary_scalar = sin(rotation_angle / 2.0);
