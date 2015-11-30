@@ -44,13 +44,13 @@ struct Color
 struct Spring_Pendulum
 {
     float m; // mass
-    
+
     float x; // x position
     float y; // y position
-    
+
     float px; // x-momentum
     float py; // y-momentum
-    
+
     float k; // spring constant
     float rl; // rest length of spring
 };
@@ -124,15 +124,15 @@ void init(void)
     glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_reflect);
     glMaterialfv(GL_FRONT, GL_SPECULAR, specular_reflect);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
-    
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    
+
     // We use glOrtho instead of glFrustum, since we're only doing 2D displays
     glOrtho(left_param, right_param,
             bottom_param, top_param,
             near_param, far_param);
-    
+
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -140,9 +140,9 @@ void reshape(int width, int height)
 {
     height = (height == 0) ? 1 : height;
     width = (width == 0) ? 1 : width;
-    
+
     glViewport(0, 0, width, height);
-    
+
     glutPostRedisplay();
 }
 
@@ -152,10 +152,10 @@ void display(void)
     glLoadIdentity();
 
     glTranslatef(-cam_position[0], -cam_position[1], -cam_position[2]);
-    
+
     // Draw the path that the pendulum has taken (without lighting effects)
     trace_path();
-    
+
     // Draw the pendulum system
     glEnable(GL_LIGHTING);
     draw_spring_pendulum();
@@ -163,7 +163,7 @@ void display(void)
 
     // Draw the numbers displayed on the screen
     draw_text();
-    
+
     glutSwapBuffers();
 }
 
@@ -179,13 +179,13 @@ float compute_lagrangian()
     float total = ke + pe;
     min_total = (total < min_total) ? total : min_total;
     max_total = (total > max_total) ? total : max_total;
-    
+
     return ke - pe;
 }
 
 /* Updates the path of the pendulum when it moves to a new point */
 void update_path()
-{    
+{
     // Delete the oldest point in the path when the paths get too big to
     // prevent slowdown
     if(path1.size() == max_num_points)
@@ -193,23 +193,23 @@ void update_path()
         path1.erase(path1.begin());
         path_colors1.erase(path_colors1.begin());
     }
-    
+
     // Make new point
     Point point1;
     point1.x = m1.x;
     point1.y = m1.y;
-    
+
     // Compute a "normalized" Lagrangian value by dividing the current Lagrangian
     // by the initial value of the Lagrangian; this isn't exactly a normalization,
     // but it suffices for generating nice colors
     float lagrangian_norm = abs(compute_lagrangian() / lagrangian_0);
     lagrangian_norm = (lagrangian_norm > 1.0) ? 1.0 : lagrangian_norm;
-    
+
     Color color1;
     color1.r = lagrangian_norm;
     color1.g = lagrangian_norm;
     color1.b = 1.0 - lagrangian_norm;
-    
+
     // Add new point and corresponding color to our lists
     path1.push_back(point1);
     path_colors1.push_back(color1);
@@ -220,7 +220,7 @@ void update_pendulum()
     /******************************* TODO *******************************/
 
     /* Your task is to write some lines of code to update:
-     * 
+     *
      *     m1.x
      *     m1.y
      *     m1.px
@@ -240,7 +240,7 @@ void update_pendulum()
      *     m1.k
      *     m1.rl
      *     g
-     * 
+     *
      */
 
 
@@ -265,7 +265,7 @@ void update()
 {
     update_path();
     update_pendulum();
-    
+
     glutPostRedisplay();
 }
 
@@ -290,7 +290,7 @@ void draw_spring_pendulum()
 
     // Draw anchor point
     glutSolidSphere(pendulum_radius * 0.5, 20, 20);
-    
+
     // Draw pendulum bob in correct position
     glPushMatrix();
     {
@@ -368,11 +368,11 @@ int main(int argc, char* argv[])
         cerr << "\nERROR: Incorrect number of arguments." << endl;
         exit(1);
     }
-    
+
     // xres and yres are given command line arguments
     int xres = atoi(argv[1]);
     int yres = atoi(argv[2]);
-    
+
     // Set mass to 1 for simplicity
     m1.m = 1;
 
@@ -389,17 +389,17 @@ int main(int argc, char* argv[])
 
     // Set rest length to 1 for simplicity
     m1.rl = 1;
-    
+
     // Set initial Lagrangian value for generating the color effect of the
     // pendulum's path
     lagrangian_0 = compute_lagrangian();
-    
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(xres, yres);
     glutInitWindowPosition(0, 0);
     glutCreateWindow("Spring Pendulum Demo");
-    
+
     init();
     glutDisplayFunc(display);
     glutIdleFunc(update);
