@@ -217,7 +217,7 @@ void update_path()
 
 void update_pendulum()
 {
-    /******************************* TODO *******************************/
+    /********************************************************************/
 
     /* Your task is to write some lines of code to update:
      *
@@ -243,21 +243,28 @@ void update_pendulum()
      *
      */
 
+    /*
+     * UPDATE RULES
+     * Here, position variables are the original ones (e.g. x = x_{k + 1})
+     * sqrt_val = sqrt(x * x + y * y)
+     * new px = old px - dt * ((k * x * (sqrt_val - len)) / sqrt_val)
+     * new py = old py - dt * ( ((k * y * (sqrt_val - len)) / sqrt_val) - mg )
+     * new x = x + (dt * new px) / m
+     * new y = y + (dt * new py) / m
+     */
 
-
-
-
-
-
-
-
-
-
-
-
-    /****************************** END TODO ****************************/
+    /********************************************************************/
 
     t += dt;
+
+    // Update momentum variables before updating position variables
+    float sqrt_val = sqrt(pow(m1.x, 2) + pow(m1.y, 2));
+    m1.px -= dt * ((m1.k * m1.x * (sqrt_val - m1.rl)) / sqrt_val);
+    m1.py -= dt * ( ((m1.k * m1.y * (sqrt_val - m1.rl)) / sqrt_val) - m1.m * g );
+
+    // Use updated momentum variables to update the position variables
+    m1.x += (dt * m1.px) / m1.m;
+    m1.y += (dt * m1.py) / m1.m;
 }
 
 /* Updates our pendulum's position and its traced path */
