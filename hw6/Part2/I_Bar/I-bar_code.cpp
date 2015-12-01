@@ -30,6 +30,7 @@ void display();
 void drawIBar();
 void key_pressed(unsigned char key, int x, int y);
 void init_keyframes();
+void init_transformations();
 void update_keyframes();
 void interpolate_translation_rotation_scaling();
 float interpolate_points(Vector4f u_vec, MatrixXf B, Vector4f p_vec);
@@ -101,6 +102,7 @@ void init()
 {
     quadratic = gluNewQuadric();
     init_keyframes();
+    init_transformations();
 
     glShadeModel(GL_SMOOTH);
     glEnable(GL_CULL_FACE);
@@ -219,6 +221,7 @@ void key_pressed(unsigned char key, int x, int y) {
         cout << "New translation = " << curr_translation.to_string() << endl;
         cout << "New scale = " << curr_scale.to_string() << endl;
         cout << "New rotation = " << curr_rotation.to_string() << endl;
+        cout << endl;
         glutPostRedisplay();
     }
 }
@@ -232,6 +235,18 @@ void init_keyframes() {
     curr_frame = keyframes[0];
     next_frame = keyframes[1];
     next_next_frame = keyframes[2];
+}
+
+/*
+ * Initialize the initial translation, rotation, and scaling vectors based on
+ * the first keyframe.
+ *
+ * Should be called after init_keyframes().
+ */
+void init_transformations() {
+    curr_translation = curr_frame.translation;
+    curr_scale = curr_frame.scale;
+    curr_rotation = curr_frame.rotation;
 }
 
 /*
@@ -340,10 +355,16 @@ Quaternionf get_quaternion(Vec4f rotation) {
  */
 Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u) {
     float angle = acos(q1.dot(q2));
+    // If the quaternions are the same, just return one of them
+    if (angle == 0)
+        return q1;
+    cout << "angle = " << angle << endl;
     float q1_scalar = (sin((1 - u) * angle) / sin(angle));
     float q2_scalar = (sin(u * angle) / sin(angle));
     Vector4f coeffs = q1.coeffs() * q1_scalar + q2.coeffs() * q2_scalar;
-    Quaternionf q(coeffs(0), coeffs(1), coeffs(2), coeffs(3));
+    // coeffs given in order x, y, z, w
+    // constructor in order w, x, y, z
+    Quaternionf q(coeffs(3), coeffs(0), coeffs(1), coeffs(2));
     return q;
 }
 
@@ -351,9 +372,11 @@ Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u) {
  * Converts a Quaternion to its corresponding rotation vector.
  */
 Vec4f quaternion2rotation(Quaternionf q) {
-    float half_angle = acos(q.x());
+    // w is the real component
+    float half_angle = acos(q.w());
     float angle = half_angle * 2.0; // in radians
     Vector4f coeffs = q.coeffs();
+    // Divide all coeffs by sin(angle / 2) to get rotation axis
     coeffs /= sin(half_angle);
     float x = coeffs(0);
     float y = coeffs(1);

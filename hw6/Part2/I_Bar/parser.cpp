@@ -30,6 +30,9 @@ Animation parse_frames(ifstream &infile) {
             continue;
         }
 
+        if (line.compare("") == 0)
+            continue;
+
         Keyframe frame;
         for (int i = 0; i < FRAME_LINES; i++) {
             if (i == 0) {
