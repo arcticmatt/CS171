@@ -354,13 +354,18 @@ Quaternionf get_quaternion(Vec4f rotation) {
  * Use SLERP to interpolate two quaternions.
  */
 Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u) {
-    float angle = acos(q1.dot(q2));
-    // If the quaternions are the same, just return one of them
-    if (angle == 0)
-        return q1;
-    cout << "angle = " << angle << endl;
-    float q1_scalar = (sin((1 - u) * angle) / sin(angle));
-    float q2_scalar = (sin(u * angle) / sin(angle));
+    float dot = q1.dot(q2);
+    float angle = acos(dot);
+    float q1_scalar;
+    float q2_scalar;
+    if (dot >= 1 || dot <= -1) {
+        // Here, sin(angle) = 0, so we have q(u) = (1 - u)q1 + uq2
+        q1_scalar = 1 - u;
+        q2_scalar = u;
+    } else {
+        q1_scalar = (sin((1 - u) * angle) / sin(angle));
+        q2_scalar = (sin(u * angle) / sin(angle));
+    }
     Vector4f coeffs = q1.coeffs() * q1_scalar + q2.coeffs() * q2_scalar;
     // coeffs given in order x, y, z, w
     // constructor in order w, x, y, z
@@ -375,6 +380,7 @@ Vec4f quaternion2rotation(Quaternionf q) {
     // w is the real component
     float half_angle = acos(q.w());
     float angle = half_angle * 2.0; // in radians
+    cout << "angle = " << angle << endl;
     Vector4f coeffs = q.coeffs();
     // Divide all coeffs by sin(angle / 2) to get rotation axis
     coeffs /= sin(half_angle);
