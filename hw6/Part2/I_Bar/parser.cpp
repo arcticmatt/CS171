@@ -17,7 +17,7 @@ const int FRAME_LINES = 4;
 Animation parse_frames(ifstream &infile) {
     string line;
 
-    int num_frames = 0;
+    int max_frames = 0;
     string label;
     int frame_num, x, y, z, alpha;
     vector<Keyframe> frames;
@@ -25,8 +25,8 @@ Animation parse_frames(ifstream &infile) {
     while (getline(infile, line)) {
         istringstream iss(line);
 
-        if (num_frames == 0) {
-            (iss >> num_frames);
+        if (max_frames == 0) {
+            (iss >> max_frames);
             continue;
         }
 
@@ -63,7 +63,7 @@ Animation parse_frames(ifstream &infile) {
     }
 
     Animation a;
-    a.num_frames = num_frames;
+    a.max_frames = max_frames;
     a.keyframes = frames;
 
     return a;

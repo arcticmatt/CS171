@@ -37,11 +37,11 @@ struct Keyframe {
 };
 
 struct Animation {
-    int num_frames;
+    int max_frames;
     vector<Keyframe> keyframes;
 
     void print() {
-        cout << num_frames << endl;
+        cout << max_frames << endl;
         for (Keyframe keyframe : keyframes) {
             cout << "Frame " << keyframe.frame_num << endl;
             cout << "translation " << keyframe.translation.to_string() << endl;
