@@ -1,0 +1,33 @@
+INSTRUCTIONS ON HOW TO RUN CODE
+
+1. Single Pendulum
+
+Simply type make and run the executable with the arguments specified in
+the assignment.
+
+2. Double pendulum.
+
+Simply type make and run the executable with the arguments specified in the
+assignment.
+
+3. Elastic
+
+Simply type make and run the executable with the arguments specified in the
+assignment.
+
+4. I_Bar
+
+Simply type make and run the executable with the arguments specified in the
+assignment.
+
+Use the 's' key to advance the frame. The frame number is outputted to the
+terminal. Use the 'q' key to quit the program.
+
+5. Bunny
+
+First, create an empty directory called 'output' in the 'Bunny_Frames' directory.
+The relative path 'Bunny_Frames/output/' should now exist. Now, type make
+and run the executable with NO arguments. The .obj files should now be in the
+output directory. All the vertices are given to 6 decimal points of precision.
+This causes some differences when diffing with the correct files, but comparing
+by eye shows that they are the same (ignoring floating point errors).
