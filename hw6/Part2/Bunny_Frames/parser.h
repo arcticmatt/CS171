@@ -6,6 +6,9 @@
 
 using namespace std;
 
+/*
+ * Struct for vectors of size 3 (translation/scale).
+ */
 struct Vec3f
 {
 	float x, y, z;
@@ -25,6 +28,9 @@ struct Vec3f
     }
 };
 
+/*
+ * Keyframe struct holds all relevant info for each keyframe.
+ */
 struct Keyframe {
     int frame_num;
     vector<Vec3f> vertices;
@@ -47,6 +53,9 @@ struct Keyframe {
     }
 };
 
+/*
+ * Animation struct stores vector of keyframes and the maximum frame number.
+ */
 struct Animation {
     int max_frames;
     vector<Keyframe> keyframes;

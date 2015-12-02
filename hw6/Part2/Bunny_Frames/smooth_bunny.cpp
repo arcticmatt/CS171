@@ -5,7 +5,6 @@
 #include <fstream>
 #include <string>
 #include "parser.h"
-#include <iomanip>
 #include <Eigen/Dense>
 
 using namespace std;
@@ -39,6 +38,10 @@ int main() {
     write_files();
 }
 
+/*
+ * Write every .obj file (00 - 20) to the output directory. The output directory
+ * should already exist.
+ */
 void write_files() {
     vector<Keyframe> frames = get_frames();
     cout << "frames.size() = " << frames.size() << endl;
@@ -52,12 +55,15 @@ void write_files() {
         cout << "filename = " << filename << endl;
 
         ofstream out(filename);
-        out << std::setprecision(6) << std::fixed;
         out << frames[i].to_string();
         out.close();
     }
 }
 
+/*
+ * Get vector of all bunny frames. Includes keyframes and interpolated frames.
+ * That is, returns a vector of frames 00 - 20.
+ */
 vector<Keyframe> get_frames() {
     vector<Keyframe> frames;
     for (int i = 0; i <= animation.max_frames; i++) {

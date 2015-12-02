@@ -5,6 +5,9 @@
 
 using namespace std;
 
+/*
+ * Struct for vectors of size 3 (translation/scale).
+ */
 struct Vec3f
 {
 	float x, y, z;
@@ -17,8 +20,12 @@ struct Vec3f
     }
 };
 
+/*
+ * Struct for vectors of size 4 (rotation).
+ */
 struct Vec4f
 {
+    // x, y, z used for rotation axis, alpha for the angle
 	float x, y, z, alpha;
     Vec4f(float x, float y, float z, float alpha) : x(x), y(y), z(z), alpha(alpha) {}
     Vec4f() {}
@@ -29,6 +36,9 @@ struct Vec4f
     }
 };
 
+/*
+ * Keyframe struct holds all relevant info for each keyframe.
+ */
 struct Keyframe {
     int frame_num;
     Vec3f translation;
@@ -36,6 +46,12 @@ struct Keyframe {
     Vec4f rotation;
 };
 
+/*
+ * Animation struct stores vector of keyframes and the maximum frame number,
+ * which is given at the start of our input files.
+ *
+ * Also provides an easy way to print all frames.
+ */
 struct Animation {
     int max_frames;
     vector<Keyframe> keyframes;

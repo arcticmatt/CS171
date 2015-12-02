@@ -79,7 +79,6 @@ int main(int argc, char* argv[]) {
     int yres = atoi(argv[3]);
 
     animation = parse_frames(infile);
-    animation.print();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -134,6 +133,9 @@ void init()
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 }
 
+/*
+ * Draw the IBar.
+ */
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -203,6 +205,9 @@ void drawIBar() {
     glPopMatrix();
 }
 
+/*
+ * Moves the frame forward by one upon the 's' key press.
+ */
 void key_pressed(unsigned char key, int x, int y) {
     if (key == 'q') {
         // 'q' quits the program
@@ -211,11 +216,6 @@ void key_pressed(unsigned char key, int x, int y) {
         // 's' steps forward one frame
         update_keyframes();
         interpolate_translation_rotation_scaling();
-        cout << "New frame num = " << frame_num << endl;
-        cout << "New translation = " << curr_translation.to_string() << endl;
-        cout << "New scale = " << curr_scale.to_string() << endl;
-        cout << "New rotation = " << curr_rotation.to_string() << endl;
-        cout << endl;
         glutPostRedisplay();
     }
 }
@@ -354,7 +354,6 @@ Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u) {
     float q2_scalar;
     if (dot >= 1 || dot <= -1) {
         // Here, sin(angle) = 0, so we have q(u) = (1 - u)q1 + uq2
-        cout << "u = " << u << endl;
         q1_scalar = 1 - u;
         q2_scalar = u;
     } else {
@@ -375,7 +374,6 @@ Vec4f quaternion2rotation(Quaternionf q) {
     // w is the real component
     float half_angle = acos(q.w());
     float angle = half_angle * 2.0; // in radians
-    cout << "angle = " << angle << endl;
     Vector4f coeffs = q.coeffs();
     // Divide all coeffs by sin(angle / 2) to get rotation axis
     coeffs /= sin(half_angle);

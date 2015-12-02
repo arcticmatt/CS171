@@ -362,7 +362,7 @@ void display(void)
          * use the discrete Euler-Lagrangian equations to solve for the update rules.
          * HINT: this is not that hard; you might even see this as a trick question...
          */
-        /****************************** END TODO ****************************/
+        /********************************************************************/
 
         ke += 1.0 / 2.0 * ( vertices[i].vx * vertices[i].vx
                             + vertices[i].vy * vertices[i].vy );
