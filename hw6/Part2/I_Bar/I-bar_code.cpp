@@ -39,6 +39,7 @@ Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u);
 Vec4f quaternion2rotation(Quaternionf q);
 float deg2rad(float angle);
 float rad2deg(float rad);
+void apply_transformations();
 
 /* Camera and perspective params (camera angle is 0, so no need for a call
  * to glRotatef for the camera)*/
@@ -133,8 +134,7 @@ void init()
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 }
 
-void display()
-{
+void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     glTranslatef(-cam_position[0], -cam_position[1], -cam_position[2]);
@@ -142,18 +142,28 @@ void display()
     glutSwapBuffers();
 }
 
-void drawIBar()
-{
+/*
+ * Apply all current transformations.
+ */
+void apply_transformations() {
+    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
+    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
+    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
+}
+
+/*
+ * Draw the infamous IBar.
+ *
+ * Only modification to this method is the addition of several calls to
+ * apply_transformations(), which is needed to transform the IBar.
+ */
+void drawIBar() {
     /* Parameters for drawing the cylinders */
     float cyRad = 0.2, cyHeight = 1.0;
     int quadStacks = 4, quadSlices = 4;
 
     glPushMatrix();
-
-    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
-    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
-    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
-
+    apply_transformations();
     glColor3f(0, 0, 1);
     glTranslatef(0, cyHeight, 0);
     glRotatef(90, 1, 0, 0);
@@ -161,11 +171,7 @@ void drawIBar()
     glPopMatrix();
 
     glPushMatrix();
-
-    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
-    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
-    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
-
+    apply_transformations();
     glColor3f(0, 1, 1);
     glTranslatef(0, cyHeight, 0);
     glRotatef(90, 0, 1, 0);
@@ -173,11 +179,7 @@ void drawIBar()
     glPopMatrix();
 
     glPushMatrix();
-
-    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
-    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
-    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
-
+    apply_transformations();
     glColor3f(1, 0, 1);
     glTranslatef(0, cyHeight, 0);
     glRotatef(-90, 0, 1, 0);
@@ -185,11 +187,7 @@ void drawIBar()
     glPopMatrix();
 
     glPushMatrix();
-
-    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
-    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
-    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
-
+    apply_transformations();
     glColor3f(1, 1, 0);
     glTranslatef(0, -cyHeight, 0);
     glRotatef(-90, 0, 1, 0);
@@ -197,11 +195,7 @@ void drawIBar()
     glPopMatrix();
 
     glPushMatrix();
-
-    glTranslatef(curr_translation.x, curr_translation.y, curr_translation.z);
-    glRotatef(curr_rotation.alpha, curr_rotation.x, curr_rotation.y, curr_rotation.z);
-    glScalef(curr_scale.x, curr_scale.y, curr_scale.z);
-
+    apply_transformations();
     glColor3f(0, 1, 0);
     glTranslatef(0, -cyHeight, 0);
     glRotatef(90, 0, 1, 0);
@@ -360,6 +354,7 @@ Quaternionf interpolate_quaternions(Quaternionf q1, Quaternionf q2, float u) {
     float q2_scalar;
     if (dot >= 1 || dot <= -1) {
         // Here, sin(angle) = 0, so we have q(u) = (1 - u)q1 + uq2
+        cout << "u = " << u << endl;
         q1_scalar = 1 - u;
         q2_scalar = u;
     } else {
