@@ -215,6 +215,7 @@ void key_pressed(unsigned char key, int x, int y) {
     } else if (key == 's') {
         // 's' steps forward one frame
         update_keyframes();
+        cout << "Frame num = " << frame_num << endl;
         interpolate_translation_rotation_scaling();
         glutPostRedisplay();
     }
