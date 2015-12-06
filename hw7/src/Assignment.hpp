@@ -10,15 +10,19 @@ class Assignment {
         Assignment() = default;
 
         static void drawIOTest();
-        static bool isInsideRen(float i, float j, float k, Renderable* ren,
-                vector<Transformation> transformations, int depth);
-        static bool isInsideObj(float i, float j, float k, Object* obj, int depth);
+        static void traverseRen(Renderable* ren, vector<Transformation> transformations,
+                int depth);
+        static void traverseObj(Object* obj, int depth);
+        static void traversePrm(Primitive* prm, vector<Transformation> transformations);
+        static bool isInsidePrm(float i, float j, float k);
         static bool isInsidePrm(float i, float j, float k, Primitive* prm,
                 vector<Transformation> transformations);
         static bool isInside(float i, float j, float k);
         static void drawSphere(float r, float g, float b, float i, float j, float k);
         static float randFloat(float lo, float hi);
+
         static void drawIntersectTest(Camera *camera);
+        static Vector3f closestPoint(vector<Vector3f> points, Camera* camera);
 };
 
 MatrixXd get_inverse_prod(vector<Transformation> transformations);

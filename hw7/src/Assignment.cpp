@@ -5,6 +5,7 @@
 #include "Scene.hpp"
 #include "UI.hpp"
 
+#include <utility>
 #include <cstdlib>
 #include <cmath>
 #include "Eigen/Dense"
@@ -12,6 +13,7 @@
 using namespace std;
 using namespace Eigen;
 
+vector<pair<Primitive*, vector<Transformation>>> scene_copy;
 const int MAX_RECURSION_DEPTH = 1000;
 const float wire_col[] = {0.5, 0.5, 0.5};
 
@@ -28,13 +30,17 @@ void Assignment::drawIOTest() {
 
     glEnable(GL_COLOR_MATERIAL);
 
+    scene_copy.clear();
     const Line* curr_state = CommandLine::getState();
     Renderable* ren = NULL;
 
     if (curr_state)
         ren = Renderable::get(curr_state->tokens[1]);
     else
-        exit(1);
+        return;
+
+    // Populate scene copy with list of primitives and transformations
+    traverseRen(ren, vector<Transformation>(), 0);
 
     for (int i = -10; i <= 10; i++) {
         for (int j = -10; j <= 10; j++) {
@@ -42,11 +48,11 @@ void Assignment::drawIOTest() {
                 float x = i * 0.5;
                 float y = j * 0.5;
                 float z = k * 0.5;
-                if (isInsideRen(x, y, z, ren, vector<Transformation>(), 0))
+                // Check if point is inside one of the scene's primitives
+                if (isInsidePrm(x, y, z))
                     drawSphere(1.0, 0, 0, x, y, z); // red
                 else
                     drawSphere(0, 0, 1.0, x, y, z); // blue
-
             }
         }
     }
@@ -54,6 +60,9 @@ void Assignment::drawIOTest() {
     glColor3f(wire_col[0], wire_col[1], wire_col[2]);
 }
 
+/*
+ * Draw a colored sphere at the passed-in point.
+ */
 void Assignment::drawSphere(float r, float g, float b, float i, float j, float k) {
     glPushMatrix();
     glColor3f(r, g, b);
@@ -65,6 +74,9 @@ void Assignment::drawSphere(float r, float g, float b, float i, float j, float k
     glPopMatrix();
 }
 
+/*
+ * Generate random float between the passed-in range.
+ */
 float Assignment::randFloat(float lo, float hi) {
     // Rand float between 0.0 and 1.0
     int rand_int = rand();
@@ -74,49 +86,57 @@ float Assignment::randFloat(float lo, float hi) {
 }
 
 /*
- * Sees whether point (i,j,k) is inside any of the current scene's
- * superquadrics.
- *
- * Need to iterate through all of Renderable's superquadrics.
+ * Traverse renderable & populate scene copy vector.
  */
-bool Assignment::isInsideRen(float i, float j, float k, Renderable* ren,
-        vector<Transformation> transformations, int depth) {
+void Assignment::traverseRen(Renderable* ren, vector<Transformation> transformations,
+        int depth) {
     // Cut off recursion if too deep
     depth += 1;
     if (depth > MAX_RECURSION_DEPTH)
-        return false;
+        return;
 
     // If Renderable
     if (ren->getType() == PRM)
-        return isInsidePrm(i, j, k, dynamic_cast<Primitive*>(ren), transformations);
+        traversePrm(dynamic_cast<Primitive*>(ren), transformations);
     else if (ren->getType() == OBJ)
-        return isInsideObj(i, j, k, dynamic_cast<Object*>(ren), depth);
-
-    return false;
+        traverseObj(dynamic_cast<Object*>(ren), depth);
 }
 
 /*
- * Sees whether point (i,j,k) is inside the passed-in object. To do this,
- * need to look at all of object's children.
+ * Traverse object & populate scene copy vector.
  */
-bool Assignment::isInsideObj(float i, float j, float k, Object* obj, int depth) {
+void Assignment::traverseObj(Object* obj, int depth) {
     // Cut off recursion if too deep
     depth += 1;
     if (depth > MAX_RECURSION_DEPTH)
-        return false;
+        return;
 
     // Iterate thru children
     const unordered_map<Name, Child, NameHasher>& child_map = obj->getChildren();
-    bool ans = false;
     for (auto it = child_map.begin(); it != child_map.end(); ++it) {
         Child child = it->second;
         Renderable *ren = Renderable::get(child.name);
-        ans = ans || isInsideRen(i, j, k, ren, child.transformations, depth);
-        // If point is inside one of the superquadrics, return true
-        if (ans)
-            return ans;
+        traverseRen(ren, child.transformations, depth);
     }
+}
 
+/*
+ * Traverse primitive & populate scene copy vector.
+ */
+void Assignment::traversePrm(Primitive* prm, vector<Transformation> transformations) {
+    scene_copy.push_back(make_pair(prm, transformations));
+}
+
+
+/*
+ * Loops through the vector of scene primitives and checks to see if passed-in
+ * point is inside of any of them.
+ */
+bool Assignment::isInsidePrm(float i, float j, float k) {
+    for (pair<Primitive*, vector<Transformation>> p : scene_copy) {
+        if (isInsidePrm(i, j, k, p.first, p.second))
+            return true;
+    }
     return false;
 }
 
@@ -232,6 +252,32 @@ MatrixXd get_rotation_matrix(float x, float y, float z, float angle) {
     return m;
 }
 
-void Assignment::drawIntersectTest(Camera *camera) {
+void Assignment::drawIntersectTest(Camera* camera) {
     cout << "In drawIntersectTest" << endl;
+
+    const Line* curr_state = CommandLine::getState();
+    Renderable* ren = NULL;
+
+    if (curr_state)
+        ren = Renderable::get(curr_state->tokens[1]);
+    else
+        return;
+
+}
+
+
+Vector3f Assignment::closestPoint(vector<Vector3f> points, Camera* camera) {
+    float min_dist = RAND_MAX;
+    Vector3f min_point = points[0];
+
+    for (Vector3f point : points) {
+        Vector3f diffs = camera->getPosition() - point;
+        float dist = diffs.norm();
+        if (dist < min_dist) {
+            min_dist = dist;
+            min_point = point;
+        }
+    }
+
+    return min_point;
 }
