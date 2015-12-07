@@ -171,6 +171,9 @@ bool Assignment::isInsidePrm(float i, float j, float k, Primitive* prm,
     return false;
 }
 
+/*
+ * Transforms a vector.
+ */
 Vector3f transform_vector(Vector3f v, MatrixXf transform) {
     Vector4f v1(v(0), v(1), v(2), 1);
     Vector4f v_t = transform * v1;

@@ -1,0 +1,11 @@
+The two screenshots are included in the hw7 directory.
+
+screenshot1.png demonstrates the inside outside function.
+To recreate this screenshot, you can simply run ./modeler and load s0.scn.
+
+screenshot2.png demonstrates the raytracer method.
+To recreate this screenshot, you can simply run ./modeler, load s1.scn, and then
+run "translate 0 0.5 0"
+
+All the relevant code is contained in Assignment.cpp and Assignment.hpp and
+is commented.
