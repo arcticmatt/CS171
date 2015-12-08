@@ -1,0 +1,17 @@
+prm p1
+obj o1
+ap p1
+translate 2 0 1
+prm p2
+obj o1
+ap p2
+obj o2
+prm p3
+prm p4
+obj o2
+ap p3
+translate -1 0 0
+scale 2 2 2
+ap p4
+translate 0 2 0
+ao o1
