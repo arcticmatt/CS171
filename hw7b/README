@@ -1,0 +1,7 @@
+All the relevant code is contained in Assignment.cpp and Assignment.hpp. I tried
+to implement the Phong shading part but didn't get it working. Right now I just
+send out rays from the camera and see if they intersect with one if the superquadrics -
+if they do, I color the pixel red, else, I color the pixel white. This functionality
+isn't quite working. I tried.
+
+Happy holidays.
